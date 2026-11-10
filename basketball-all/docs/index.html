@@ -355,6 +355,23 @@ html,body,.app{background:var(--paper)}
 @keyframes enter{from{opacity:0;transform:translateY(8px)}}
 @keyframes toast{from{opacity:0;transform:translate(-50%,12px) scale(.96)}}
 @keyframes bounce{0%{transform:translateY(-120px);opacity:0}15%{opacity:1}40%{transform:translateY(0)}58%{transform:translateY(-46px)}74%{transform:translateY(0)}86%{transform:translateY(-14px)}100%{transform:translateY(0);opacity:0}}
+/* 착장 카드: 폰 한 화면에 여러 개 보이도록 작은 사진 + 글 */
+.cards>.fit{display:grid;grid-template-columns:76px 1fr;gap:0 14px;padding:14px}
+.fit .ph{grid-row:1;width:76px;height:96px;margin:0;border-radius:12px;background:var(--s1);overflow:hidden;display:grid;place-items:center;color:var(--faint);aspect-ratio:auto}
+.fit .ph svg{width:30px;height:30px}
+.fit .ph img{width:100%;height:100%;object-fit:cover}
+.fit .fx{min-width:0;align-self:center}
+.fit .shoe{font-size:18px;line-height:1.25}
+.fit .shoe small{font-family:"Pretendard Variable",Pretendard,sans-serif;font-size:12px;margin-left:6px}
+.fit .grip{margin-top:5px}
+.fit .grip i{width:16px;height:5px}
+.fit .wear{margin:5px 0 0;font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fit .quote{margin:6px 0 0;padding:0;background:none;font-size:13.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fit .quote:before{content:"“";color:var(--ball);font-weight:800;margin-right:2px}
+.fit .ft{grid-column:1/3;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)}
+.fit .ft .meta a{color:var(--ink);font-weight:600;margin-right:4px}
+.fit .like{height:30px;padding:0 11px;font-size:13px}
+.bigph{display:block;width:100%;max-height:70dvh;object-fit:contain;border-radius:14px;background:var(--s1)}
 .still .pl,.still .chart i{animation:none}
 :focus-visible{outline:2.5px solid var(--ball);outline-offset:2px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
@@ -621,18 +638,22 @@ function bindGames() {
 function fitCard(f, showCourt = true) {
   const liked = nickname && f.liked_by.includes(nickname), owner = nickname && f.nickname === nickname;
   const rows = [['상의', f.top], ['하의', f.bottom], ['기타', f.extra]].filter(r => r[1]);
+  const wear = [f.top, f.bottom, f.extra].filter(Boolean).map(esc).join(', ');
   return `<article class="fit">
-    ${f.photo ? `<div class="ph"><img src="${esc(f.photo)}" alt="${esc(f.shoes)} 착장" loading="lazy"></div>` : ''}
-    <div class="shoe">${esc(f.shoes)}${f.shoe_size ? `<small>${esc(f.shoe_size)}</small>` : ''}</div>
-    ${f.grip ? `<div class="grip"><span>접지력</span>${[1, 2, 3, 4, 5].map(n => `<i class="${n <= f.grip ? 'f' : ''}"></i>`).join('')}</div>` : ''}
-    ${rows.length ? `<dl class="outfit">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
-    ${f.comment ? `<p class="quote">${esc(f.comment)}</p>` : ''}
-    <div class="ft"><div class="meta">${showCourt && f.court_name ? `<a href="#/c/${esc(f.court_id)}" style="text-decoration:underline">${esc(f.court_name)}</a> · ` : ''}${esc(f.nickname)} · ${ago(f.ago)}</div>
+    <button class="ph ${f.photo ? '' : 'none'}" ${f.photo ? `data-photo="${esc(f.photo)}" aria-label="사진 크게 보기"` : 'tabindex="-1" aria-hidden="true"'}>${f.photo ? `<img src="${esc(f.photo)}" alt="${esc(f.shoes)} 착장" loading="lazy">` : I.fit}</button>
+    <div class="fx">
+      <div class="shoe">${esc(f.shoes)}${f.shoe_size ? `<small>${esc(f.shoe_size)}</small>` : ''}</div>
+      ${f.grip ? `<div class="grip"><span>접지력</span>${[1, 2, 3, 4, 5].map(n => `<i class="${n <= f.grip ? 'f' : ''}"></i>`).join('')}</div>` : ''}
+      ${wear ? `<p class="wear">${wear}</p>` : ''}
+      ${f.comment ? `<p class="quote">${esc(f.comment)}</p>` : ''}
+    </div>
+    <div class="ft"><div class="meta">${showCourt && f.court_name ? `<a href="#/c/${esc(f.court_id)}">${esc(f.court_name)}</a> ` : ''}${esc(f.nickname)}, ${ago(f.ago)}</div>
       ${owner ? `<button class="b t" data-fd="${f.id}">삭제</button>` : `<button class="b t" data-fr="${f.id}">신고</button>`}
       <button class="like ${liked ? 'on' : ''}" data-fl="${f.id}" aria-label="좋아요">${I.heart}${f.likes}</button></div>
   </article>`;
 }
 function bindFits() {
+  view.querySelectorAll('[data-photo]').forEach(b => b.onclick = () => openSheet(`<img class="bigph" src="${esc(b.dataset.photo)}" alt="착장 사진"><div style="height:12px"></div><button class="btn line sm" onclick="closeSheet()">닫기</button>`));
   view.querySelectorAll('[data-fl]').forEach(b => b.onclick = () => withNick(() => act(() => api(`api/fits/${b.dataset.fl}/like`, 'POST', {nickname}))));
   view.querySelectorAll('[data-fd]').forEach(b => b.onclick = () => { if (confirm('이 착장 글을 삭제할까요?')) act(() => api(`api/fits/${b.dataset.fd}/delete`, 'POST', {nickname})); });
   view.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => { if (confirm('부적절한 글로 신고할까요? 신고가 누적되면 자동으로 숨겨집니다.')) act(() => api(`api/fits/${b.dataset.fr}/report`, 'POST'), '신고했어요'); });
