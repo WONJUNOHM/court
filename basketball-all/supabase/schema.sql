@@ -164,7 +164,7 @@ create or replace function _open_posts() returns setof posts language sql stable
 
 create or replace function _post_json(p posts) returns jsonb language sql stable security definer set search_path = public as $$
   select jsonb_build_object('id', p.id, 'court_id', p.court_id, 'nickname', p.nickname, 'title', p.title,
-    'when_text', to_char(p.play_at, 'HH24:MI'), 'need', p.capacity - 1, 'link', p.link, 'play_at', to_char(p.play_at, 'YYYY-MM-DD HH24:MI'),
+    'when_text', to_char(p.play_at, 'HH24:MI'), 'need', p.capacity - 1, 'has_link', p.link <> '', 'play_at', to_char(p.play_at, 'YYYY-MM-DD HH24:MI'),
     'capacity', p.capacity, 'level', p.level, 'fmt', p.fmt, 'created', '', 'court_name', (select name from courts where id = p.court_id),
     'ago', _ago(p.created),
     'joined', coalesce((select jsonb_agg(nickname order by joined) from post_joins where post_id = p.id), '[]')) $$;
@@ -281,6 +281,16 @@ begin
   insert into posts(court_id, nickname, title, play_at, capacity, level, fmt, link) values (cid, n, t, at, capacity, level, fmt, l) returning id into pid;
   insert into post_joins(post_id, nickname) values (pid, n);
   return '{"ok":true}';
+end $$;
+
+-- 오픈채팅 링크는 참가한 사람(모집자 포함)에게만 알려 준다
+create or replace function api_post_link(pid bigint, nickname text, key text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare n text := _owner(nickname, key); l text;
+begin
+  select p.link into l from posts p where p.id = pid
+    and exists (select 1 from post_joins j where j.post_id = p.id and j.nickname = n);
+  if l is null or l = '' then perform _err('참가한 사람만 볼 수 있어요'); end if;
+  return jsonb_build_object('link', l);
 end $$;
 
 create or replace function api_post_action(pid bigint, act text, nickname text, key text) returns jsonb language plpgsql security definer set search_path = public as $$
