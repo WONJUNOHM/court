@@ -61,7 +61,7 @@ create or replace function _err(msg text) returns void language plpgsql as $$ be
 create or replace function _nick(n text) returns text language plpgsql as $$
 declare s text := btrim(coalesce(n, ''));
 begin
-  if s = '' or char_length(s) > 20 then perform _err('닉네임을 1~20자로 입력해 주십시오'); end if;
+  if s = '' or char_length(s) > 20 then perform _err('닉네임을 1~20자로 입력해 주세요'); end if;
   return s;
 end $$;
 
@@ -70,7 +70,7 @@ create or replace function _limit(k text) returns void language plpgsql security
 declare h text := md5(coalesce(k, ''));
 begin
   if (select count(*) from hits where hits.k = h and t > now() - interval '1 minute') >= 60 then
-    perform _err('요청이 너무 많습니다. 잠시 후 다시 시도해 주십시오');
+    perform _err('요청이 너무 많아요. 잠시 후 다시 시도해 주세요');
   end if;
   insert into hits(k) values (h);
   if random() < 0.02 then delete from hits where t < now() - interval '10 minutes'; end if;
@@ -81,18 +81,18 @@ create or replace function _owner(n text, k text) returns text language plpgsql 
 declare s text := _nick(n); h text; cur text;
 begin
   k := btrim(coalesce(k, ''));
-  if char_length(k) < 16 or char_length(k) > 128 then perform _err('앱을 새로고침한 뒤 다시 시도해 주십시오'); end if;
+  if char_length(k) < 16 or char_length(k) > 128 then perform _err('앱을 새로고침한 뒤 다시 시도해 주세요'); end if;
   perform _limit(k);
   h := encode(sha256(convert_to(k, 'UTF8')), 'hex');
   select key_hash into cur from nicks where nickname = s;
   if cur is null then insert into nicks(nickname, key_hash) values (s, h) on conflict do nothing;
     select key_hash into cur from nicks where nickname = s; end if;
-  if cur <> h then perform _err('다른 기기에서 이미 쓰고 있는 닉네임입니다. 다른 닉네임을 정해 주십시오'); end if;
+  if cur <> h then perform _err('다른 기기에서 이미 쓰는 닉네임이에요. 다른 닉네임을 정해 주세요'); end if;
   return s;
 end $$;
 
 create or replace function _court(cid text) returns void language plpgsql security definer set search_path = public as $$
-begin if not exists (select 1 from courts where id = cid) then perform _err('없는 코트입니다'); end if; end $$;
+begin if not exists (select 1 from courts where id = cid) then perform _err('없는 코트예요'); end if; end $$;
 
 create or replace function _status(cid text) returns jsonb language plpgsql stable security definer set search_path = public as $$
 declare n_in int; r record; n int;
@@ -101,9 +101,9 @@ begin
   select count, _ago(created) ago into r from reports where court_id = cid and created > now() - interval '30 minutes' order by id desc limit 1;
   n := greatest(n_in, coalesce(r.count, 0));
   return jsonb_build_object('checked_in', n_in, 'reported', r.count, 'report_ago', r.ago, 'people', n)
-    || case when n < 5 then '{"key":"calm","label":"한산","hint":"여유가 있습니다"}'::jsonb
-            when n < 10 then '{"key":"mid","label":"보통","hint":"5대5 가능한 인원입니다"}'::jsonb
-            else '{"key":"busy","label":"혼잡","hint":"대기가 있을 수 있습니다"}'::jsonb end;
+    || case when n < 5 then '{"key":"calm","label":"한산","hint":"여유가 있어요"}'::jsonb
+            when n < 10 then '{"key":"mid","label":"보통","hint":"5대5 가능한 인원이에요"}'::jsonb
+            else '{"key":"busy","label":"혼잡","hint":"대기가 있을 수 있어요"}'::jsonb end;
 end $$;
 
 create or replace function _conditions(cid text) returns jsonb language plpgsql stable security definer set search_path = public as $$
@@ -156,7 +156,7 @@ create or replace function api_court(cid text) returns jsonb language plpgsql st
 declare c courts; hours jsonb; samples int;
 begin
   select * into c from courts where id = cid;
-  if c.id is null then perform _err('없는 코트입니다'); end if;
+  if c.id is null then perform _err('없는 코트예요'); end if;
   -- 시간대(KST)별 평균 인원: 제보 평균과 하루 체크인 수 평균 중 큰 값
   with rep as (select extract(hour from created at time zone 'Asia/Seoul')::int h, avg(count) a from reports where court_id = cid group by 1),
        ci as (select h, avg(n) a from (select extract(hour from created at time zone 'Asia/Seoul')::int h, (created at time zone 'Asia/Seoul')::date d, count(*) n
@@ -210,7 +210,7 @@ begin update checkins set out = true where court_id = cid and checkins.nickname 
 create or replace function api_report(cid text, count int, key text) returns jsonb language plpgsql security definer set search_path = public as $$
 begin
   perform _limit(key); perform _court(cid);
-  if count is null or count < 0 or count > 40 then perform _err('인원은 0~40명 사이로 입력해 주십시오'); end if;
+  if count is null or count < 0 or count > 40 then perform _err('인원은 0~40명 사이로 입력해 주세요'); end if;
   insert into reports(court_id, count) values (cid, count);
   return '{"ok":true}';
 end $$;
@@ -218,7 +218,7 @@ end $$;
 create or replace function api_condition(cid text, tag text, key text) returns jsonb language plpgsql security definer set search_path = public as $$
 begin
   perform _limit(key); perform _court(cid);
-  if tag is null or tag not in ('lights_on', 'lights_off', 'wet', 'waiting', 'ball') then perform _err('알 수 없는 상태입니다'); end if;
+  if tag is null or tag not in ('lights_on', 'lights_off', 'wet', 'waiting', 'ball') then perform _err('알 수 없는 상태예요'); end if;
   insert into conditions(court_id, tag) values (cid, tag);
   return '{"ok":true}';
 end $$;
@@ -228,15 +228,15 @@ create or replace function api_new_post(cid text, nickname text, key text, title
 declare n text := _owner(nickname, key); t text := btrim(coalesce(title, '')); l text := btrim(coalesce(link, '')); at timestamp; pid bigint;
 begin
   perform _court(cid);
-  if t = '' or char_length(t) > 60 then perform _err('제목을 1~60자로 입력해 주십시오'); end if;
-  if capacity is null or capacity < 2 or capacity > 30 then perform _err('전체 인원은 2~30명입니다'); end if;
+  if t = '' or char_length(t) > 60 then perform _err('제목을 1~60자로 입력해 주세요'); end if;
+  if capacity is null or capacity < 2 or capacity > 30 then perform _err('전체 인원은 2~30명이에요'); end if;
   if fmt is null or fmt not in ('3vs3', '5vs5', '자유') or level is null or level not in ('입문', '초급', '중급', '상급', '누구나') then
-    perform _err('형식 또는 레벨이 올바르지 않습니다'); end if;
+    perform _err('형식 또는 레벨이 올바르지 않아요'); end if;
   if coalesce(play_date, '') !~ '^\d{4}-\d{2}-\d{2}$' or coalesce(play_time, '') !~ '^([01]\d|2[0-3]):[0-5]\d$' then
-    perform _err('날짜와 시간을 확인해 주십시오'); end if;
-  if l <> '' and l !~ '^https://\S{3,200}$' then perform _err('오픈채팅 링크는 https:// 로 시작해야 합니다'); end if;
-  begin at := (play_date || ' ' || play_time)::timestamp; exception when others then perform _err('날짜와 시간을 확인해 주십시오'); end;
-  if at <= _kst() - interval '30 minutes' or at >= _kst() + interval '15 days' then perform _err('경기 시간은 지금부터 14일 안으로 정해 주십시오'); end if;
+    perform _err('날짜와 시간을 확인해 주세요'); end if;
+  if l <> '' and l !~ '^https://\S{3,200}$' then perform _err('오픈채팅 링크는 https:// 로 시작해야 해요'); end if;
+  begin at := (play_date || ' ' || play_time)::timestamp; exception when others then perform _err('날짜와 시간을 확인해 주세요'); end;
+  if at <= _kst() - interval '30 minutes' or at >= _kst() + interval '15 days' then perform _err('경기 시간은 지금부터 14일 안으로 정해 주세요'); end if;
   insert into posts(court_id, nickname, title, play_at, capacity, level, fmt, link) values (cid, n, t, at, capacity, level, fmt, l) returning id into pid;
   insert into post_joins(post_id, nickname) values (pid, n);
   return '{"ok":true}';
@@ -246,15 +246,15 @@ create or replace function api_post_action(pid bigint, act text, nickname text, 
 declare n text := _owner(nickname, key); p posts;
 begin
   select * into p from posts where id = pid for update;
-  if p.id is null then if act = 'join' then perform _err('없는 글입니다'); end if; return '{"ok":true}'; end if;
+  if p.id is null then if act = 'join' then perform _err('없는 글이에요'); end if; return '{"ok":true}'; end if;
   if act = 'join' then
     if not exists (select 1 from post_joins where post_id = pid and post_joins.nickname = n) then
-      if (select count(*) from post_joins where post_id = pid) >= p.capacity then perform _err('이미 마감된 게임입니다'); end if;
+      if (select count(*) from post_joins where post_id = pid) >= p.capacity then perform _err('이미 마감된 게임이에요'); end if;
       insert into post_joins(post_id, nickname) values (pid, n);
     end if;
   elsif act = 'leave' then delete from post_joins where post_id = pid and post_joins.nickname = n;
   elsif act = 'delete' then delete from posts where id = pid and posts.nickname = n;
-  else perform _err('알 수 없는 요청입니다'); end if;
+  else perform _err('알 수 없는 요청이에요'); end if;
   return '{"ok":true}';
 end $$;
 
@@ -263,12 +263,12 @@ create or replace function api_new_fit(nickname text, key text, court_id text, s
   returns jsonb language plpgsql security definer set search_path = public as $$
 declare n text := _owner(nickname, key); s text := btrim(coalesce(shoes, '')); ph text := coalesce(photo, '');
 begin
-  if s = '' or char_length(s) > 50 then perform _err('신발 이름을 1~50자로 입력해 주십시오'); end if;
-  if grip is null or grip < 0 or grip > 5 then perform _err('접지력은 1~5점입니다'); end if;
+  if s = '' or char_length(s) > 50 then perform _err('신발 이름을 1~50자로 입력해 주세요'); end if;
+  if grip is null or grip < 0 or grip > 5 then perform _err('접지력은 1~5점이에요'); end if;
   if coalesce(court_id, '') <> '' then perform _court(court_id); end if;
   -- 사진은 앱이 Storage(fits 버킷)에 먼저 올리고 그 공개 주소만 넘긴다
   if ph <> '' and ph !~ '^https://[a-z0-9]+\.supabase\.co/storage/v1/object/public/fits/[0-9a-f-]{36}\.jpg$' then
-    perform _err('사진을 다시 올려 주십시오'); end if;
+    perform _err('사진을 다시 올려 주세요'); end if;
   insert into fits(court_id, nickname, shoes, shoe_size, top, bottom, extra, comment, grip, photo)
   values (coalesce(court_id, ''), n, left(s, 50), left(btrim(coalesce(shoe_size, '')), 12), left(btrim(coalesce(top, '')), 40),
     left(btrim(coalesce(bottom, '')), 40), left(btrim(coalesce(extra, '')), 60), left(btrim(coalesce(comment, '')), 120), grip, ph);
@@ -290,7 +290,7 @@ begin
     if exists (select 1 from fit_likes where fit_id = fid and fit_likes.nickname = n) then delete from fit_likes where fit_id = fid and fit_likes.nickname = n;
     elsif exists (select 1 from fits where id = fid) then insert into fit_likes(fit_id, nickname) values (fid, n); end if;
   elsif act = 'delete' then delete from fits where id = fid and fits.nickname = n;
-  else perform _err('알 수 없는 요청입니다'); end if;
+  else perform _err('알 수 없는 요청이에요'); end if;
   return '{"ok":true}';
 end $$;
 

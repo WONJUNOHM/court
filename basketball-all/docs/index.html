@@ -212,6 +212,7 @@ select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%
 .toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:90;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:22px;font-weight:600;font-size:14px;animation:fade .2s;max-width:90vw;text-align:center}
 .skel{height:84px;margin:0 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,transparent,rgba(0,0,0,.04),transparent);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes fade{from{opacity:0}}@keyframes up{from{transform:translateY(30px);opacity:.5}}@keyframes sh{from{background-position:200% 0}to{background-position:-200% 0}}
+[hidden]{display:none!important}
 /* ===== 2026-11 디자인 다듬기: 회색 바탕 + 흰 카드, 검색, 히어로 ===== */
 :root{--page:#f3f4f6;--card:#fff;--shadow:0 1px 2px rgba(17,24,39,.04),0 6px 18px rgba(17,24,39,.06);--r:20px}
 html,body{background:var(--page)}
@@ -313,22 +314,22 @@ html,body{background:var(--page)}
   async function rpc(fn, args = {}) {
     let r;
     try { r = await realFetch(`${URL_}/rest/v1/rpc/${fn}`, {method: 'POST', headers: H, body: JSON.stringify(args)}); }
-    catch (e) { throw new HttpError(503, '서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주십시오'); }
+    catch (e) { throw new HttpError(503, '서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요'); }
     const d = await r.json().catch(() => null);
-    if (!r.ok) throw new HttpError(r.status === 401 ? 403 : 400, (d && d.message) || '요청에 실패했습니다');
+    if (!r.ok) throw new HttpError(r.status === 401 ? 403 : 400, (d && d.message) || '요청에 실패했어요');
     return d;
   }
 
   async function uploadPhoto(dataUrl) {
     const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || '');
-    if (!m) throw new HttpError(400, '사진은 JPEG만 올릴 수 있습니다');
+    if (!m) throw new HttpError(400, '사진은 JPEG만 올릴 수 있어요');
     const bin = atob(m[1]), bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    if (bytes.length > 600 * 1024) throw new HttpError(400, '사진 용량이 너무 큽니다');
+    if (bytes.length > 600 * 1024) throw new HttpError(400, '사진 용량이 너무 커요');
     const name = crypto.randomUUID() + '.jpg';
     const r = await realFetch(`${URL_}/storage/v1/object/fits/${name}`, {method: 'POST', headers: {apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'image/jpeg'}, body: bytes})
       .catch(() => null);
-    if (!r || !r.ok) throw new HttpError(400, '사진을 올리지 못했습니다. 잠시 후 다시 시도해 주십시오');
+    if (!r || !r.ok) throw new HttpError(400, '사진을 올리지 못했어요. 잠시 후 다시 시도해 주세요');
     return `${URL_}/storage/v1/object/public/fits/${name}`;
   }
 
@@ -363,7 +364,7 @@ html,body{background:var(--page)}
       }
       if ((m = path.match(/^api\/fits\/(\d+)\/(like|report|delete)$/))) return rpc('api_fit_action', {fid: +m[1], act: m[2], nickname: b.nickname || '', key});
     }
-    throw new HttpError(404, '찾을 수 없습니다');
+    throw new HttpError(404, '찾을 수 없어요');
   }
 
   window.fetch = async function (input, init = {}) {
@@ -379,7 +380,7 @@ html,body{background:var(--page)}
       return new Response(JSON.stringify(out), {status: 200, headers: {'Content-Type': 'application/json'}});
     } catch (e) {
       const code = e instanceof HttpError ? e.code : 500;
-      return new Response(JSON.stringify({detail: e instanceof HttpError ? e.message : '오류가 발생했습니다'}), {status: code, headers: {'Content-Type': 'application/json'}});
+      return new Response(JSON.stringify({detail: e instanceof HttpError ? e.message : '오류가 발생했어요'}), {status: code, headers: {'Content-Type': 'application/json'}});
     }
   };
 })();
@@ -581,9 +582,9 @@ async function homeView() {
       <small>${best ? '지금 가장 한산한 코트' : '오늘 첫 제보를 기다리고 있어요'}</small>
       ${best ? `<strong>${esc(best.name)}</strong><div class="hrow"><span class="tag ${status(best).key}">${status(best).label}</span><b class="n">${best.people}명</b><span>${esc(best.district || best.area)}</span></div>`
              : `<strong>코트에 도착하면<br>체크인해 주세요</strong><div class="hrow"><span>떠날 때는 체크아웃!</span></div>`}
-      <div class="stats"><div><b class="n">${known.length}</b><span>제보 있는 코트</span></div><div><b class="n">${totalNow}</b><span>지금 코트에</span></div><div><b class="n">${games}</b><span>모집 중 게임</span></div></div>
+      <div class="stats"><div><b class="n">${known.length}</b><span>제보 있는 코트</span></div><div><b class="n">${totalNow}</b><span>지금 뛰는 사람</span></div><div><b class="n">${games}</b><span>모집 중 게임</span></div></div>
     </section>
-    <label class="search">${I.search}<input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="코트 이름, 지역으로 검색 (예: 마포구, 뚝섬)" value="${esc(query)}"><button type="button" id="qx" aria-label="지우기" ${query ? '' : 'hidden'}>${I.x}</button></label>
+    <label class="search">${I.search}<input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="코트 이름이나 지역 (예: 마포구)" value="${esc(query)}"><button type="button" id="qx" aria-label="지우기" ${query ? '' : 'hidden'}>${I.x}</button></label>
     <div class="chips">${regions().map(f => `<button class="chip ${f === filter ? 'on' : ''}" data-f="${esc(f)}">${f === '전체' ? '전체' : f === '모집중' ? '🏀 모집 중' : `${I.pin}${esc(f)}`}</button>`).join('')}</div>
     <div class="lhead"><span>코트 <b id="cnt" class="n">0</b>곳</span><span>한산한 순</span></div>
     <div class="list" id="cl"></div>
@@ -617,7 +618,7 @@ async function courtView(id) {
   $('#sh').onclick = shareFn;
   const q = encodeURIComponent(c.map_query), facts = [['위치', c.address], ['골대', c.hoops], ['바닥', c.surface], ['조명', c.lights], ['메모', c.note]].filter(x => x[1]);
   view.innerHTML = `
-    <div class="sum"><div class="top1"><span class="area">${esc(c.area)} · 현재 인원</span><span class="tag ${st.key}">${st.label}</span></div>
+    <div class="sum"><div class="top1"><span class="area">${esc(c.district || c.area)} · 현재 인원</span><span class="tag ${st.key}">${st.label}</span></div>
       <div class="bigrow"><b class="n ${st.key}">${st.known ? c.people : '–'}</b><span>명</span></div>
       ${seg(c, st, true)}<div class="fresh">${st.hint} · ${freshness(c)}</div>
       ${c.conditions.length ? `<div class="tg">${c.conditions.map(x => `<span class="tag acc">${esc(x.label)} · ${ago(x.ago)}</span>`).join('')}</div>` : ''}</div>

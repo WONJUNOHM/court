@@ -88,17 +88,17 @@ async def limit(request: Request, call_next):
         while q and now - q[0] > 60:
             q.popleft()
         if len(q) >= 60:
-            return JSONResponse({"detail": "요청이 너무 많습니다. 잠시 후 다시 시도해 주십시오"}, status_code=429)
+            return JSONResponse({"detail": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요"}, status_code=429)
         q.append(now)
     return await call_next(request)
 
 
 def level(n):
     if n < 5:
-        return {"key": "calm", "label": "한산", "hint": "여유가 있습니다"}
+        return {"key": "calm", "label": "한산", "hint": "여유가 있어요"}
     if n < 10:
-        return {"key": "mid", "label": "보통", "hint": "5대5 가능한 인원입니다"}
-    return {"key": "busy", "label": "혼잡", "hint": "대기가 있을 수 있습니다"}
+        return {"key": "mid", "label": "보통", "hint": "5대5 가능한 인원이에요"}
+    return {"key": "busy", "label": "혼잡", "hint": "대기가 있을 수 있어요"}
 
 
 def court_status(c, cid):
@@ -170,7 +170,7 @@ class Post(BaseModel):
 def nick(s):
     s = s.strip()
     if not s or len(s) > 20:
-        raise HTTPException(400, "닉네임을 1~20자로 입력해 주십시오")
+        raise HTTPException(400, "닉네임을 1~20자로 입력해 주세요")
     return s
 
 
@@ -179,13 +179,13 @@ def owner(c, name, key):
     name = nick(name)
     key = (key or "").strip()
     if not 16 <= len(key) <= 128:
-        raise HTTPException(400, "앱을 새로고침한 뒤 다시 시도해 주십시오")
+        raise HTTPException(400, "앱을 새로고침한 뒤 다시 시도해 주세요")
     h = hashlib.sha256(key.encode()).hexdigest()
     row = c.execute("SELECT key_hash FROM nicks WHERE nickname=?", (name,)).fetchone()
     if row is None:
         c.execute("INSERT INTO nicks(nickname, key_hash) VALUES(?,?)", (name, h))
     elif not hmac.compare_digest(row["key_hash"], h):
-        raise HTTPException(403, "다른 기기에서 이미 쓰고 있는 닉네임입니다. 다른 닉네임을 정해 주십시오")
+        raise HTTPException(403, "다른 기기에서 이미 쓰는 닉네임이에요. 다른 닉네임을 정해 주세요")
     return name
 
 
@@ -197,7 +197,7 @@ def claim_nick(n: Nick):
 
 def court_or_404(c, cid):
     if not c.execute("SELECT 1 FROM courts WHERE id=?", (cid,)).fetchone():
-        raise HTTPException(404, "없는 코트입니다")
+        raise HTTPException(404, "없는 코트예요")
 
 
 def static(name, media=None):
@@ -316,7 +316,7 @@ def checkout(cid: str, n: Nick):
 @app.post("/api/courts/{cid}/report")
 def report(cid: str, r: Report):
     if not 0 <= r.count <= 40:
-        raise HTTPException(400, "인원은 0~40명 사이로 입력해 주십시오")
+        raise HTTPException(400, "인원은 0~40명 사이로 입력해 주세요")
     with db() as c:
         court_or_404(c, cid)
         c.execute("INSERT INTO reports(court_id,count) VALUES(?,?)", (cid, r.count))
@@ -326,7 +326,7 @@ def report(cid: str, r: Report):
 @app.post("/api/courts/{cid}/condition")
 def condition(cid: str, cd: Cond):
     if cd.tag not in COND_TAGS:
-        raise HTTPException(400, "알 수 없는 상태입니다")
+        raise HTTPException(400, "알 수 없는 상태예요")
     with db() as c:
         court_or_404(c, cid)
         c.execute("INSERT INTO conditions(court_id,tag) VALUES(?,?)", (cid, cd.tag))
@@ -339,15 +339,15 @@ def new_post(cid: str, p: Post):
     title = p.title.strip()
     link = p.link.strip()
     if not title or len(title) > 60:
-        raise HTTPException(400, "제목을 1~60자로 입력해 주십시오")
+        raise HTTPException(400, "제목을 1~60자로 입력해 주세요")
     if not 2 <= p.capacity <= 30:
-        raise HTTPException(400, "전체 인원은 2~30명입니다")
+        raise HTTPException(400, "전체 인원은 2~30명이에요")
     if p.fmt not in FORMATS or p.level not in LEVELS:
-        raise HTTPException(400, "형식 또는 레벨이 올바르지 않습니다")
+        raise HTTPException(400, "형식 또는 레벨이 올바르지 않아요")
     if not re.match(r"^\d{4}-\d{2}-\d{2}$", p.play_date) or not re.match(r"^([01]\d|2[0-3]):[0-5]\d$", p.play_time):
-        raise HTTPException(400, "날짜와 시간을 확인해 주십시오")
+        raise HTTPException(400, "날짜와 시간을 확인해 주세요")
     if link and not re.match(r"^https://[^\s]{3,200}$", link):
-        raise HTTPException(400, "오픈채팅 링크는 https:// 로 시작해야 합니다")
+        raise HTTPException(400, "오픈채팅 링크는 https:// 로 시작해야 해요")
     play_at = f"{p.play_date} {p.play_time}"
     with db() as c:
         owner(c, name, p.key)
@@ -355,7 +355,7 @@ def new_post(cid: str, p: Post):
         ok = c.execute("SELECT ? > datetime('now', '+9 hours', '-30 minutes') AND ? < datetime('now', '+9 hours', '+15 days')",
                        (play_at, play_at)).fetchone()[0]
         if not ok:
-            raise HTTPException(400, "경기 시간은 지금부터 14일 안으로 정해 주십시오")
+            raise HTTPException(400, "경기 시간은 지금부터 14일 안으로 정해 주세요")
         cur = c.execute("INSERT INTO posts(court_id,nickname,title,when_text,need,link,play_at,capacity,level,fmt) VALUES(?,?,?,?,?,?,?,?,?,?)",
                         (cid, name, title, p.play_time, p.capacity - 1, link, play_at, p.capacity, p.level, p.fmt))
         c.execute("INSERT INTO post_joins VALUES(?,?)", (cur.lastrowid, name))
@@ -372,7 +372,7 @@ def join_post(pid: int, n: Nick):
         cap = row["capacity"] or row["need"] + 1
         joined = [r["nickname"] for r in c.execute("SELECT nickname FROM post_joins WHERE post_id=?", (pid,))]
         if name not in joined and len(joined) >= cap:
-            raise HTTPException(400, "이미 마감된 게임입니다")
+            raise HTTPException(400, "이미 마감된 게임이에요")
         c.execute("INSERT OR IGNORE INTO post_joins VALUES(?,?)", (pid, name))
     return {"ok": True}
 
@@ -436,9 +436,9 @@ def new_fit(f: Fit):
     name = nick(f.nickname)
     shoes = f.shoes.strip()
     if not shoes or len(shoes) > 50:
-        raise HTTPException(400, "신발 이름을 1~50자로 입력해 주십시오")
+        raise HTTPException(400, "신발 이름을 1~50자로 입력해 주세요")
     if not 0 <= f.grip <= 5:
-        raise HTTPException(400, "접지력은 1~5점입니다")
+        raise HTTPException(400, "접지력은 1~5점이에요")
     clip = lambda s, n: s.strip()[:n]
     with db() as c:  # 사진을 저장하기 전에 닉네임 주인부터 확인
         owner(c, name, f.key)

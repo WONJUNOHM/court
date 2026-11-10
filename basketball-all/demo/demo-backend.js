@@ -12,7 +12,7 @@
   const agoMin = t => Math.max(0, Math.floor((nowMs() - t) / MIN));
   const mem = {};
   const load = () => { try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch (e) {} return mem.s || null; };
-  const save = s => { mem.s = s; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { throw new HttpError(400, '저장 공간이 부족합니다. 하단의 초기화를 눌러 주십시오'); } };
+  const save = s => { mem.s = s; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { throw new HttpError(400, '저장 공간이 부족합니다. 하단의 초기화를 눌러 주세요'); } };
   class HttpError extends Error { constructor(code, msg) { super(msg); this.code = code; } }
 
   function seed() {
@@ -33,10 +33,10 @@
   let S = load() || seed(); save(S);
 
   const V = {
-    nick(s) { s = (s || '').trim(); if (!s || s.length > 20) throw new HttpError(400, '닉네임을 1~20자로 입력해 주십시오'); return s; },
-    court(id) { const c = COURTS.find(x => x.id === id); if (!c) throw new HttpError(404, '없는 코트입니다'); return c; },
+    nick(s) { s = (s || '').trim(); if (!s || s.length > 20) throw new HttpError(400, '닉네임을 1~20자로 입력해 주세요'); return s; },
+    court(id) { const c = COURTS.find(x => x.id === id); if (!c) throw new HttpError(404, '없는 코트예요'); return c; },
   };
-  const level = n => n < 5 ? {key: 'calm', label: '한산', hint: '여유가 있습니다'} : n < 10 ? {key: 'mid', label: '보통', hint: '5대5 가능한 인원입니다'} : {key: 'busy', label: '혼잡', hint: '대기가 있을 수 있습니다'};
+  const level = n => n < 5 ? {key: 'calm', label: '한산', hint: '여유가 있어요'} : n < 10 ? {key: 'mid', label: '보통', hint: '5대5 가능한 인원이에요'} : {key: 'busy', label: '혼잡', hint: '대기가 있을 수 있어요'};
   function status(cid) {
     const t = nowMs();
     const nIn = S.checkins.filter(x => x.court === cid && !x.out && x.t > t - 3 * HOUR).length;
@@ -95,33 +95,33 @@
         const c = V.court(m[1]), act = m[2];
         if (act === 'checkin') { const n = V.nick(body.nickname); S.checkins.forEach(x => { if (x.nick === n && !x.out) x.out = true; }); S.checkins.push({court: c.id, nick: n, t: nowMs(), out: false}); }
         else if (act === 'checkout') S.checkins.forEach(x => { if (x.court === c.id && x.nick === (body.nickname || '').trim() && !x.out) x.out = true; });
-        else if (act === 'report') { if (!(body.count >= 0 && body.count <= 40)) throw new HttpError(400, '인원은 0~40명 사이로 입력해 주십시오'); S.reports.push({court: c.id, count: Math.floor(body.count), t: nowMs()}); }
-        else if (act === 'condition') { if (!COND_TAGS[body.tag]) throw new HttpError(400, '알 수 없는 상태입니다'); S.conds.push({court: c.id, tag: body.tag, t: nowMs()}); }
+        else if (act === 'report') { if (!(body.count >= 0 && body.count <= 40)) throw new HttpError(400, '인원은 0~40명 사이로 입력해 주세요'); S.reports.push({court: c.id, count: Math.floor(body.count), t: nowMs()}); }
+        else if (act === 'condition') { if (!COND_TAGS[body.tag]) throw new HttpError(400, '알 수 없는 상태예요'); S.conds.push({court: c.id, tag: body.tag, t: nowMs()}); }
         else {
           const n = V.nick(body.nickname), title = (body.title || '').trim(), link = (body.link || '').trim();
-          if (!title || title.length > 60) throw new HttpError(400, '제목을 1~60자로 입력해 주십시오');
-          if (!(body.capacity >= 2 && body.capacity <= 30)) throw new HttpError(400, '전체 인원은 2~30명입니다');
-          if (!FORMATS.includes(body.fmt) || !LEVELS.includes(body.level)) throw new HttpError(400, '형식 또는 레벨이 올바르지 않습니다');
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(body.play_date || '') || !/^([01]\d|2[0-3]):[0-5]\d$/.test(body.play_time || '')) throw new HttpError(400, '날짜와 시간을 확인해 주십시오');
-          if (link && !/^https:\/\/\S{3,200}$/.test(link)) throw new HttpError(400, '오픈채팅 링크는 https:// 로 시작해야 합니다');
+          if (!title || title.length > 60) throw new HttpError(400, '제목을 1~60자로 입력해 주세요');
+          if (!(body.capacity >= 2 && body.capacity <= 30)) throw new HttpError(400, '전체 인원은 2~30명이에요');
+          if (!FORMATS.includes(body.fmt) || !LEVELS.includes(body.level)) throw new HttpError(400, '형식 또는 레벨이 올바르지 않아요');
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(body.play_date || '') || !/^([01]\d|2[0-3]):[0-5]\d$/.test(body.play_time || '')) throw new HttpError(400, '날짜와 시간을 확인해 주세요');
+          if (link && !/^https:\/\/\S{3,200}$/.test(link)) throw new HttpError(400, '오픈채팅 링크는 https:// 로 시작해야 해요');
           const at = body.play_date + ' ' + body.play_time;
-          if (!(at > kstStr(nowMs() - 30 * MIN) && at < kstStr(nowMs() + 15 * 24 * HOUR))) throw new HttpError(400, '경기 시간은 지금부터 14일 안으로 정해 주십시오');
+          if (!(at > kstStr(nowMs() - 30 * MIN) && at < kstStr(nowMs() + 15 * 24 * HOUR))) throw new HttpError(400, '경기 시간은 지금부터 14일 안으로 정해 주세요');
           S.posts.push({id: ++S.seq, court: c.id, nick: n, title, play_at: at, capacity: Math.floor(body.capacity), fmt: body.fmt, level: body.level, link, created: nowMs(), joined: [n]});
         }
         return {ok: true};
       }
       if ((m = path.match(/^api\/posts\/(\d+)\/(join|leave|delete)$/))) {
-        const p = S.posts.find(x => x.id === +m[1]); if (!p) { if (m[2] === 'join') throw new HttpError(404, '없는 글입니다'); return {ok: true}; }
+        const p = S.posts.find(x => x.id === +m[1]); if (!p) { if (m[2] === 'join') throw new HttpError(404, '없는 글이에요'); return {ok: true}; }
         const n = (body.nickname || '').trim();
-        if (m[2] === 'join') { const nn = V.nick(n); if (!p.joined.includes(nn)) { if (p.joined.length >= p.capacity) throw new HttpError(400, '이미 마감된 게임입니다'); p.joined.push(nn); } }
+        if (m[2] === 'join') { const nn = V.nick(n); if (!p.joined.includes(nn)) { if (p.joined.length >= p.capacity) throw new HttpError(400, '이미 마감된 게임이에요'); p.joined.push(nn); } }
         else if (m[2] === 'leave') p.joined = p.joined.filter(x => x !== n);
         else if (p.nick === n) S.posts = S.posts.filter(x => x !== p);
         return {ok: true};
       }
       if (path === 'api/fits') {
         const n = V.nick(body.nickname), shoes = (body.shoes || '').trim();
-        if (!shoes || shoes.length > 50) throw new HttpError(400, '신발 이름을 1~50자로 입력해 주십시오');
-        const grip = body.grip | 0; if (grip < 0 || grip > 5) throw new HttpError(400, '접지력은 1~5점입니다');
+        if (!shoes || shoes.length > 50) throw new HttpError(400, '신발 이름을 1~50자로 입력해 주세요');
+        const grip = body.grip | 0; if (grip < 0 || grip > 5) throw new HttpError(400, '접지력은 1~5점이에요');
         if (body.court_id) V.court(body.court_id);
         if (body.photo && (!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(body.photo) || body.photo.length > 900000)) throw new HttpError(400, '사진은 JPEG만, 용량이 너무 크면 올릴 수 없습니다');
         const cl = (v, k) => (v || '').trim().slice(0, k);
@@ -136,7 +136,7 @@
         return {ok: true};
       }
     }
-    throw new HttpError(404, '찾을 수 없습니다');
+    throw new HttpError(404, '찾을 수 없어요');
   }
 
   window.fetch = async function (input, init = {}) {
@@ -153,7 +153,7 @@
       return new Response(JSON.stringify(out), {status: 200, headers: {'Content-Type': 'application/json'}});
     } catch (e) {
       const code = e instanceof HttpError ? e.code : 500;
-      return new Response(JSON.stringify({detail: e instanceof HttpError ? e.message : '오류가 발생했습니다'}), {status: code, headers: {'Content-Type': 'application/json'}});
+      return new Response(JSON.stringify({detail: e instanceof HttpError ? e.message : '오류가 발생했어요'}), {status: code, headers: {'Content-Type': 'application/json'}});
     }
   };
   window.__resetDemo = () => { try { localStorage.removeItem(KEY); } catch (e) {} mem.s = null; location.reload(); };

@@ -10,22 +10,22 @@
   async function rpc(fn, args = {}) {
     let r;
     try { r = await realFetch(`${URL_}/rest/v1/rpc/${fn}`, {method: 'POST', headers: H, body: JSON.stringify(args)}); }
-    catch (e) { throw new HttpError(503, '서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주십시오'); }
+    catch (e) { throw new HttpError(503, '서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요'); }
     const d = await r.json().catch(() => null);
-    if (!r.ok) throw new HttpError(r.status === 401 ? 403 : 400, (d && d.message) || '요청에 실패했습니다');
+    if (!r.ok) throw new HttpError(r.status === 401 ? 403 : 400, (d && d.message) || '요청에 실패했어요');
     return d;
   }
 
   async function uploadPhoto(dataUrl) {
     const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || '');
-    if (!m) throw new HttpError(400, '사진은 JPEG만 올릴 수 있습니다');
+    if (!m) throw new HttpError(400, '사진은 JPEG만 올릴 수 있어요');
     const bin = atob(m[1]), bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    if (bytes.length > 600 * 1024) throw new HttpError(400, '사진 용량이 너무 큽니다');
+    if (bytes.length > 600 * 1024) throw new HttpError(400, '사진 용량이 너무 커요');
     const name = crypto.randomUUID() + '.jpg';
     const r = await realFetch(`${URL_}/storage/v1/object/fits/${name}`, {method: 'POST', headers: {apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'image/jpeg'}, body: bytes})
       .catch(() => null);
-    if (!r || !r.ok) throw new HttpError(400, '사진을 올리지 못했습니다. 잠시 후 다시 시도해 주십시오');
+    if (!r || !r.ok) throw new HttpError(400, '사진을 올리지 못했어요. 잠시 후 다시 시도해 주세요');
     return `${URL_}/storage/v1/object/public/fits/${name}`;
   }
 
@@ -60,7 +60,7 @@
       }
       if ((m = path.match(/^api\/fits\/(\d+)\/(like|report|delete)$/))) return rpc('api_fit_action', {fid: +m[1], act: m[2], nickname: b.nickname || '', key});
     }
-    throw new HttpError(404, '찾을 수 없습니다');
+    throw new HttpError(404, '찾을 수 없어요');
   }
 
   window.fetch = async function (input, init = {}) {
@@ -76,7 +76,7 @@
       return new Response(JSON.stringify(out), {status: 200, headers: {'Content-Type': 'application/json'}});
     } catch (e) {
       const code = e instanceof HttpError ? e.code : 500;
-      return new Response(JSON.stringify({detail: e instanceof HttpError ? e.message : '오류가 발생했습니다'}), {status: code, headers: {'Content-Type': 'application/json'}});
+      return new Response(JSON.stringify({detail: e instanceof HttpError ? e.message : '오류가 발생했어요'}), {status: code, headers: {'Content-Type': 'application/json'}});
     }
   };
 })();
