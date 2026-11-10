@@ -75,6 +75,21 @@ begin
   return s;
 end $$;
 
+-- 개인정보처리방침의 보관 기간이 지난 기록을 지운다 (쓰기 요청 100번에 한 번꼴로 실행)
+alter table nicks add column if not exists last_seen timestamptz default now();
+create or replace function _cleanup() returns void language plpgsql security definer set search_path = public as $$
+begin
+  delete from checkins   where created < now() - interval '1 year';
+  delete from reports    where created < now() - interval '1 year';
+  delete from conditions where created < now() - interval '1 year';
+  delete from posts      where play_at < _kst() - interval '30 days';   -- 참가 기록도 함께 지워짐
+  -- 1년 동안 안 쓴 닉네임: 올린 착장이 남아 있으면 남의 글을 지울 수 없게 닉네임을 계속 묶어 둔다
+  delete from nicks n where coalesce(n.last_seen, n.created) < now() - interval '1 year'
+    and not exists (select 1 from fits f where f.nickname = n.nickname)
+    and not exists (select 1 from bans b where b.nickname = n.nickname);
+  delete from photo_trash where created < now() - interval '30 days';
+end $$;
+
 -- 쓰기 요청 제한: 기기 키당 1분에 60회
 create or replace function _limit(k text) returns void language plpgsql security definer set search_path = public as $$
 declare h text := md5(coalesce(k, ''));
@@ -84,6 +99,7 @@ begin
   end if;
   insert into hits(k) values (h);
   if random() < 0.02 then delete from hits where t < now() - interval '10 minutes'; end if;
+  if random() < 0.01 then perform _cleanup(); end if;
 end $$;
 
 -- 닉네임을 처음 쓴 기기(비밀 키)에 묶는다
@@ -100,6 +116,7 @@ begin
   if cur <> h then perform _err('다른 기기에서 이미 쓰는 닉네임이에요. 다른 닉네임을 정해 주세요'); end if;
   if exists (select 1 from bans where bans.nickname = s or (bans.key_hash <> '' and bans.key_hash = h)) then
     perform _err('이용이 제한된 닉네임이에요'); end if;
+  update nicks set last_seen = now() where nickname = s and (last_seen is null or last_seen < now() - interval '1 day');
   return s;
 end $$;
 
