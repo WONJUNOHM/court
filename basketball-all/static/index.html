@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f3f4f6">
 <meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -212,6 +212,84 @@ select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%
 .toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:90;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:22px;font-weight:600;font-size:14px;animation:fade .2s;max-width:90vw;text-align:center}
 .skel{height:84px;margin:0 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,transparent,rgba(0,0,0,.04),transparent);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes fade{from{opacity:0}}@keyframes up{from{transform:translateY(30px);opacity:.5}}@keyframes sh{from{background-position:200% 0}to{background-position:-200% 0}}
+[hidden]{display:none!important}
+/* ===== 2026-11 디자인 다듬기: 회색 바탕 + 흰 카드, 검색, 히어로 ===== */
+:root{--page:#f3f4f6;--card:#fff;--shadow:0 1px 2px rgba(17,24,39,.04),0 6px 18px rgba(17,24,39,.06);--r:20px}
+html,body{background:var(--page)}
+.app{background:var(--page)}
+@media (min-width:520px){body{background:#e6e8ec}.app{box-shadow:0 0 0 1px #e1e4e8,0 30px 60px rgba(0,0,0,.08)}}
+.top{background:rgba(243,244,246,.86);padding-top:calc(12px + env(safe-area-inset-top))}
+.brand{font-size:20px;gap:9px}
+.brand .logo{width:28px;height:28px;flex:none;filter:drop-shadow(0 3px 6px rgba(232,71,12,.3))}
+.ib.me{background:var(--card);box-shadow:var(--shadow)}
+.h1{font-size:27px;margin-top:10px}
+.lead{line-height:1.6}
+/* 히어로 */
+.hero{display:block;margin:8px 16px 0;padding:22px 20px 18px;border-radius:26px;color:#fff;position:relative;overflow:hidden;cursor:pointer;
+  background:radial-gradient(140% 120% at 100% 0%,#ff8a4c 0%,#e8470c 34%,#7a2a0e 64%,#17191d 92%);box-shadow:0 14px 30px rgba(232,71,12,.25)}
+.hero:before{content:"";position:absolute;right:-46px;top:-46px;width:190px;height:190px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.18);background:linear-gradient(90deg,transparent 49%,rgba(255,255,255,.16) 49% 51%,transparent 51%),linear-gradient(0deg,transparent 49%,rgba(255,255,255,.16) 49% 51%,transparent 51%)}
+.hero small{font-size:13px;font-weight:600;opacity:.85}
+.hero strong{display:block;font-size:24px;line-height:1.3;font-weight:800;letter-spacing:-.045em;margin:4px 0 10px;max-width:85%}
+.hrow{display:flex;align-items:center;gap:8px;font-size:14px}
+.hrow b{font-size:18px;font-weight:800}
+.hrow span:not(.tag){opacity:.8}
+.hero .tag{background:rgba(255,255,255,.95)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18)}
+.stats div{display:flex;flex-direction:column;gap:1px}
+.stats b{font-size:21px;font-weight:800;letter-spacing:-.03em}
+.stats span{font-size:11.5px;opacity:.78;font-weight:600}
+/* 검색 */
+.search{display:flex;align-items:center;gap:10px;margin:16px 16px 0;height:52px;padding:0 14px 0 16px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);border:1.5px solid transparent;transition:border-color .15s}
+.search:focus-within{border-color:var(--accent)}
+.search>svg{width:20px;height:20px;color:var(--sub);flex:none}
+.search input{flex:1;min-width:0;border:0;outline:none;background:none;font-size:16px;height:100%}
+.search input::placeholder{color:var(--faint)}
+.search input::-webkit-search-cancel-button{display:none}
+.search button{width:28px;height:28px;border-radius:50%;background:var(--s2);display:grid;place-items:center;flex:none}
+.search button svg{width:14px;height:14px}
+/* 칩 */
+.chips{padding:12px 16px 2px}
+.chip{background:var(--card);border-color:transparent;box-shadow:0 1px 2px rgba(17,24,39,.06)}
+.chip svg{width:14px;height:14px;opacity:.6}
+.chip.on svg{opacity:1}
+.lhead{display:flex;justify-content:space-between;margin:14px 20px 8px;font-size:13px;color:var(--sub);font-weight:600}
+.lhead b{color:var(--ink)}
+/* 카드 목록 */
+.list,.cards{display:grid;gap:10px;padding:0 16px}
+.cards{margin-top:10px}
+.list .crow,.cards>.game,.cards>.fit{background:var(--card);border:0;border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.list .crow{transition:transform .12s}
+.list .crow:active{transform:scale(.985);background:var(--card)}
+.cards>.empty,.list>.empty{background:var(--card);border-radius:var(--r)}
+.skel{height:96px;margin:0;border:0;border-radius:var(--r);background-color:var(--card)}
+.cnum{font-size:16px}
+.seg{margin-top:14px}
+.sep{height:0;background:none;margin:16px 0 0}
+.sec{margin-top:24px}
+/* 상세 */
+.sum{background:var(--card);box-shadow:var(--shadow);border-radius:24px}
+.btn{border-radius:14px;box-shadow:0 6px 16px rgba(232,71,12,.22)}
+.btn.line,.btn.dark{box-shadow:none}
+.btn.line{background:var(--card)}
+.links a,.links span{background:var(--card);border-color:transparent;box-shadow:0 1px 2px rgba(17,24,39,.06)}
+.kv{background:var(--card);border-radius:var(--r);padding:0 16px;box-shadow:var(--shadow)}
+.kv dt:nth-last-child(2),.kv dd:last-child{border-bottom:0}
+.rank,.guide{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:0 16px}
+.guide{padding:0}.guide div+div{border-top:1px solid var(--line)}
+.rk:last-child{border-bottom:0}
+.chart{background:var(--card);border-radius:var(--r);padding:16px 14px 10px;height:130px;box-shadow:var(--shadow);margin-bottom:0}
+.dates{background:rgba(243,244,246,.94)}
+.dt.on{box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.quote{background:var(--s1)}
+.banner{border-radius:var(--r)}
+.fab{background:var(--accent);box-shadow:0 10px 24px rgba(232,71,12,.35)}
+/* 하단 탭 */
+.nav>div{background:rgba(255,255,255,.94);border-top:0;box-shadow:0 -1px 0 var(--line),0 -8px 24px rgba(17,24,39,.05)}
+.nav button.on{color:var(--accent)}
+.nav button.on:before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;border-radius:0 0 3px 3px;background:var(--accent)}
+.sheet{border-radius:26px 26px 0 0}
+.toast{border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.2)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -237,8 +315,12 @@ const I = {
   share: S('<path d="M12 15V3.5M7.5 8L12 3.5 16.5 8M5 12.5V19a1 1 0 001 1h12a1 1 0 001-1v-6.5"/>'),
   refresh: S('<path d="M20 11a8 8 0 10-2.4 5.7M20 4.5V11h-6.5"/>'),
   heart: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/></svg>',
-  plus: S('<path d="M12 5v14M5 12h14"/>', 2.6)
+  plus: S('<path d="M12 5v14M5 12h14"/>', 2.6),
+  search: S('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>', 2),
+  pin: S('<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0113 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>'),
+  x: S('<path d="M6 6l12 12M18 6L6 18"/>', 2.2)
 };
+const LOGO = '<svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#e8470c"/><circle cx="16" cy="16" r="9.5" fill="none" stroke="#fff" stroke-width="2"/><path d="M16 6.5v19M6.5 16h19M9.3 9.3c3.6 3.2 3.6 10.2 0 13.4M22.7 9.3c-3.6 3.2-3.6 10.2 0 13.4" fill="none" stroke="#fff" stroke-width="1.6"/></svg>';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let nickname = ''; try { nickname = localStorage.getItem('nick') || ''; } catch (e) {}
 // 이 기기만의 비밀 키: 닉네임을 처음 쓴 기기에만 묶어서 다른 사람이 같은 닉네임으로 글을 지우지 못하게 한다
@@ -252,11 +334,11 @@ const setNick = n => { nickname = n; try { localStorage.setItem('nick', n); } ca
 
 async function api(path, method = 'GET', body) {
   let r;
-  if (body && 'nickname' in body) body = {...body, key: nickKey};
+  if (method !== 'GET') body = {...(body || {}), key: nickKey};
   try { r = await fetch(path, {method, headers: {'Content-Type': 'application/json'}, body: body ? JSON.stringify(body) : undefined}); }
-  catch (e) { throw new Error('서버에 연결할 수 없습니다'); }
+  catch (e) { throw new Error('서버에 연결할 수 없어요'); }
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : '요청에 실패했습니다');
+  if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : '요청에 실패했어요');
   return d;
 }
 function toast(m) { document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.append(t); setTimeout(() => t.remove(), 2400); }
@@ -289,7 +371,7 @@ function nickSheet(then) {
     <label class="field"><span>닉네임 (최대 20자)</span><input class="in" id="ni" maxlength="20" value="${esc(nickname)}" placeholder="예) 슛돌이" autocomplete="off"></label>
     <div style="height:18px"></div><button class="btn" id="ns">저장</button>`, s => {
     const go = async () => {
-      const v = s.querySelector('#ni').value.trim(); if (!v) return toast('닉네임을 입력해 주십시오');
+      const v = s.querySelector('#ni').value.trim(); if (!v) return toast('닉네임을 입력해 주세요');
       try { await api('api/nick', 'POST', {nickname: v}); } catch (e) { return toast(e.message); }
       setNick(v); closeSheet(); render(); then && then();
     };
@@ -302,20 +384,20 @@ async function act(fn, okMsg) { try { await fn(); okMsg && toast(okMsg); await r
 /* ---------- 조각 ---------- */
 function status(c) {
   const known = c.checked_in > 0 || c.reported !== null;
-  return known ? {key: c.key, label: c.label, hint: c.hint, known} : {key: 'unk', label: '정보 없음', hint: '첫 제보를 남겨 주십시오', known};
+  return known ? {key: c.key, label: c.label, hint: c.hint, known} : {key: 'unk', label: '정보 없음', hint: '첫 제보를 남겨 주세요', known};
 }
 const seg = (c, st, lg) => `<div class="seg ${st.key} ${lg ? 'lg' : ''}" aria-label="현재 ${c.people}명">${Array.from({length: 10}, (_, i) => `<i class="${i < Math.min(c.people, 10) ? 'f' : ''}"></i>`).join('')}</div>`;
 function freshness(c) {
   const p = [];
   if (c.checked_in) p.push(`체크인 ${c.checked_in}명`);
   if (c.reported !== null) p.push(`제보 ${c.reported}명 · ${ago(c.report_ago)}`);
-  return p.join('  ·  ') || '아직 제보가 없습니다';
+  return p.join('  ·  ') || '아직 제보가 없어요';
 }
 function courtRow(c) {
   const st = status(c);
   return `<button class="crow" data-go="c/${c.id}">
     <div class="r1"><div class="cn">${esc(c.name)}</div><span class="cnum ${st.key}">${st.known ? c.people + '명' : ''}</span><span class="tag ${st.key}">${st.label}</span></div>
-    <div class="cm">${esc(c.area)} · ${st.known ? freshness(c) : '제보 없음'}${c.open_posts ? ` · <em>모집 ${c.open_posts}</em>` : ''}</div>
+    <div class="cm">${esc(c.district || c.area)} · ${st.known ? freshness(c) : '아직 제보 없음'}${c.open_posts ? ` · <em>모집 ${c.open_posts}</em>` : ''}</div>
     ${seg(c, st)}</button>`;
 }
 
@@ -345,8 +427,8 @@ function gameCard(p, showDate) {
 }
 function bindGames() {
   view.querySelectorAll('[data-pid]').forEach(b => b.onclick = () => withNick(() => {
-    if (b.dataset.act === 'delete' && !confirm('이 모집글을 삭제하시겠습니까?')) return;
-    act(() => api(`api/posts/${b.dataset.pid}/${b.dataset.act}`, 'POST', {nickname}), b.dataset.act === 'join' ? '참가했습니다. 코트에서 뵙겠습니다' : null);
+    if (b.dataset.act === 'delete' && !confirm('이 모집글을 삭제할까요?')) return;
+    act(() => api(`api/posts/${b.dataset.pid}/${b.dataset.act}`, 'POST', {nickname}), b.dataset.act === 'join' ? '참가했어요. 코트에서 만나요' : null);
   }));
 }
 
@@ -366,8 +448,8 @@ function fitCard(f, showCourt = true) {
 }
 function bindFits() {
   view.querySelectorAll('[data-fl]').forEach(b => b.onclick = () => withNick(() => act(() => api(`api/fits/${b.dataset.fl}/like`, 'POST', {nickname}))));
-  view.querySelectorAll('[data-fd]').forEach(b => b.onclick = () => { if (confirm('이 착장 글을 삭제하시겠습니까?')) act(() => api(`api/fits/${b.dataset.fd}/delete`, 'POST', {nickname})); });
-  view.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => { if (confirm('부적절한 글로 신고하시겠습니까? 신고가 누적되면 자동으로 숨겨집니다.')) act(() => api(`api/fits/${b.dataset.fr}/report`, 'POST'), '신고했습니다'); });
+  view.querySelectorAll('[data-fd]').forEach(b => b.onclick = () => { if (confirm('이 착장 글을 삭제할까요?')) act(() => api(`api/fits/${b.dataset.fd}/delete`, 'POST', {nickname})); });
+  view.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => { if (confirm('부적절한 글로 신고할까요? 신고가 누적되면 자동으로 숨겨집니다.')) act(() => api(`api/fits/${b.dataset.fr}/report`, 'POST'), '신고했어요'); });
 }
 const sec = (t, count, right = '') => `<div class="sec"><h3>${t}${count != null ? `<em>${count}</em>` : ''}</h3>${right}</div>`;
 function bindGo() { view.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.go; }); }
@@ -376,7 +458,7 @@ function bindGo() { view.querySelectorAll('[data-go]').forEach(b => b.onclick = 
 function topbar({title, back, right = ''} = {}) {
   const t = $('#top');
   t.innerHTML = back ? `<button class="ib" id="bk" aria-label="뒤로">${I.back}</button><div class="ttl">${esc(title)}</div>${right}`
-                     : `<div class="brand"><i></i>코트 한눈에</div>${right}`;
+                     : `<div class="brand">${LOGO}코트 한눈에</div>${right}`;
   const b = $('#bk'); if (b) b.onclick = () => history.length > 1 ? history.back() : (location.hash = '#/');
 }
 function nav(tab, badge) {
@@ -389,30 +471,46 @@ const meBtn = () => `<button class="ib me" id="mb">${nickname ? esc(nickname.sli
 const bindMe = () => { const m = $('#mb'); if (m) m.onclick = () => nickSheet(); };
 
 /* ---------- 홈 ---------- */
-let courts = [], filter = '전체';
-const FILTERS = ['전체', '마포', '한강', '모집중'];
+let courts = [], filter = '전체', query = '';
 async function loadCourts() { courts = await api('api/courts'); return courts; }
-
+const norm = t => String(t || '').replace(/\s+/g, '').toLowerCase();
+const regions = () => ['전체', ...[...new Set(courts.map(c => c.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ko')), '모집중'];
+const hit = c => !norm(query) || norm([c.name, c.area, c.district, c.address, c.map_query].join(' ')).includes(norm(query));
+function homeList() {
+  const list = courts.filter(c => (filter === '전체' || (filter === '모집중' ? c.open_posts : c.district === filter)) && hit(c));
+  list.sort((a, b) => (status(a).known === status(b).known ? a.people - b.people : status(a).known ? -1 : 1) || a.name.localeCompare(b.name, 'ko'));
+  const box = $('#cl'); if (!box) return;
+  $('#cnt').textContent = list.length;
+  box.innerHTML = list.map(courtRow).join('') || `<div class="empty"><b>${query ? `"${esc(query)}" 검색 결과가 없어요` : '해당하는 코트가 없어요'}</b>코트 이름이나 자치구(예: 마포구, 광진구)로 찾아보세요</div>`;
+  box.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.go; });
+}
 async function homeView() {
   topbar({right: `<button class="ib" id="rf" aria-label="새로고침">${I.refresh}</button>${meBtn()}`});
-  $('#rf').onclick = () => render().then(() => toast('새로고침했습니다')); bindMe(); fab(null);
-  if (!courts.length) view.innerHTML = '<div class="skel"></div>'.repeat(5);
+  $('#rf').onclick = () => render().then(() => toast('새로고침했어요')); bindMe(); fab(null);
+  if (!courts.length) view.innerHTML = '<div class="list">' + '<div class="skel"></div>'.repeat(5) + '</div>';
   await loadCourts();
   const known = courts.filter(c => status(c).known), best = [...known].sort((a, b) => a.people - b.people)[0], games = courts.reduce((s, c) => s + c.open_posts, 0);
-  let list = courts.filter(c => filter === '전체' || (filter === '모집중' ? c.open_posts : c.area === filter));
-  list.sort((a, b) => (status(a).known === status(b).known ? a.people - b.people : status(a).known ? -1 : 1) || a.name.localeCompare(b.name, 'ko'));
+  const totalNow = known.reduce((s, c) => s + c.people, 0);
+  const focused = document.activeElement && document.activeElement.id === 'q';
   view.innerHTML = `
-    <h1 class="h1">지금 어느 코트가<br>비어 있습니까?</h1>
-    <section class="pick" ${best ? `data-go="c/${best.id}" style="cursor:pointer"` : ''}>
-      <div class="tx"><small>${best ? '지금 가장 한산한 코트' : '아직 오늘 제보가 없습니다'}</small>
-        ${best ? `<strong>${esc(best.name)}</strong><div><span class="tag ${status(best).key}">${status(best).label}</span> <b class="n" style="margin-left:4px">${best.people}명</b></div>`
-               : `<strong>첫 제보를 남겨 주십시오</strong><div style="color:var(--sub)">도착하시면 체크인, 떠나실 때 체크아웃해 주십시오</div>`}</div>
-      <img src="img/overpass.jpg" alt=""></section>
-    <div class="chips">${FILTERS.map(f => `<button class="chip ${f === filter ? 'on' : ''}" data-f="${f}">${f}</button>`).join('')}</div>
-    <div style="margin-top:6px;border-top:1px solid var(--line)">${list.map(courtRow).join('') || `<div class="empty"><b>해당하는 코트가 없습니다</b>다른 필터를 선택해 주십시오</div>`}</div>
-    <p class="notes">혼잡도는 앱 사용자의 체크인(3시간 뒤 자동 해제)과 최근 30분 제보 중 큰 값입니다. 이용자가 늘수록 정확해집니다.</p>`;
-  view.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; render(); });
-  bindGo(); nav('', games);
+    <section class="hero" ${best ? `data-go="c/${best.id}" role="button" tabindex="0"` : ''}>
+      <small>${best ? '지금 가장 한산한 코트' : '오늘 첫 제보를 기다리고 있어요'}</small>
+      ${best ? `<strong>${esc(best.name)}</strong><div class="hrow"><span class="tag ${status(best).key}">${status(best).label}</span><b class="n">${best.people}명</b><span>${esc(best.district || best.area)}</span></div>`
+             : `<strong>코트에 도착하면<br>체크인해 주세요</strong><div class="hrow"><span>떠날 때는 체크아웃!</span></div>`}
+      <div class="stats"><div><b class="n">${known.length}</b><span>제보 있는 코트</span></div><div><b class="n">${totalNow}</b><span>지금 뛰는 사람</span></div><div><b class="n">${games}</b><span>모집 중 게임</span></div></div>
+    </section>
+    <label class="search">${I.search}<input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="코트 이름이나 지역 (예: 마포구)" value="${esc(query)}"><button type="button" id="qx" aria-label="지우기" ${query ? '' : 'hidden'}>${I.x}</button></label>
+    <div class="chips">${regions().map(f => `<button class="chip ${f === filter ? 'on' : ''}" data-f="${esc(f)}">${f === '전체' ? '전체' : f === '모집중' ? '🏀 모집 중' : `${I.pin}${esc(f)}`}</button>`).join('')}</div>
+    <div class="lhead"><span>코트 <b id="cnt" class="n">0</b>곳</span><span>한산한 순</span></div>
+    <div class="list" id="cl"></div>
+    <p class="notes">혼잡도는 체크인(3시간 뒤 자동 해제)과 최근 30분 제보 중 큰 값이에요. 이용자가 많아질수록 정확해져요.</p>`;
+  const q = $('#q'), qx = $('#qx');
+  q.oninput = () => { query = q.value; qx.hidden = !query; homeList(); };
+  q.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) q.blur(); };
+  qx.onclick = () => { query = ''; q.value = ''; qx.hidden = true; homeList(); q.focus(); };
+  if (focused) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+  view.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; view.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b)); homeList(); });
+  homeList(); bindGo(); nav('', games);
 }
 
 /* ---------- 코트 상세 ---------- */
@@ -430,26 +528,26 @@ async function courtView(id) {
   topbar({title: c.name, back: true, right: `<button class="ib" id="sh" aria-label="공유">${I.share}</button>`});
   const shareFn = async () => {
     const data = {title: `${c.name} · 코트 한눈에`, text: st.known ? `${c.name} 지금 ${c.people}명 (${st.label})` : `${c.name} 현황`, url: location.href.split('#')[0] + '#/c/' + c.id};
-    try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(data.url); toast('링크를 복사했습니다'); } } catch (e) {}
+    try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(data.url); toast('링크를 복사했어요'); } } catch (e) {}
   };
   $('#sh').onclick = shareFn;
   const q = encodeURIComponent(c.map_query), facts = [['위치', c.address], ['골대', c.hoops], ['바닥', c.surface], ['조명', c.lights], ['메모', c.note]].filter(x => x[1]);
   view.innerHTML = `
-    <div class="sum"><div class="top1"><span class="area">${esc(c.area)} · 현재 인원</span><span class="tag ${st.key}">${st.label}</span></div>
+    <div class="sum"><div class="top1"><span class="area">${esc(c.district || c.area)} · 현재 인원</span><span class="tag ${st.key}">${st.label}</span></div>
       <div class="bigrow"><b class="n ${st.key}">${st.known ? c.people : '–'}</b><span>명</span></div>
       ${seg(c, st, true)}<div class="fresh">${st.hint} · ${freshness(c)}</div>
       ${c.conditions.length ? `<div class="tg">${c.conditions.map(x => `<span class="tag acc">${esc(x.label)} · ${ago(x.ago)}</span>`).join('')}</div>` : ''}</div>
-    <div class="pad" style="margin-top:12px"><button class="btn ${here ? 'dark' : ''}" id="ci">${here ? '체크아웃 · 떠납니다' : '체크인 · 도착했습니다'}</button>
+    <div class="pad" style="margin-top:12px"><button class="btn ${here ? 'dark' : ''}" id="ci">${here ? '체크아웃 · 떠나요' : '체크인 · 도착했어요'}</button>
       <div class="duo"><button class="btn line sm" id="rp">인원 제보</button><button class="btn line sm" id="sh2">링크 공유</button></div></div>
-    ${sec('현장 상태')}<p class="hint">지금 상황을 눌러 알려 주십시오. 2시간 동안 표시됩니다.</p>
+    ${sec('현장 상태')}<p class="hint">지금 상황을 눌러 알려 주세요. 2시간 동안 표시돼요.</p>
     <div class="cond">${Object.entries(CONDS).map(([k, l]) => `<button class="chip ${c.conditions.some(x => x.tag === k) ? 'on acc' : ''}" data-cond="${k}">${l}</button>`).join('')}</div>
     <div class="sep"></div>
     ${sec('게임 모집', c.posts.length)}
-    <div style="margin-top:6px;border-top:1px solid var(--line)">${c.posts.map(p => gameCard(p, true)).join('') || `<div class="empty" style="padding:28px 16px"><b>열린 게임이 없습니다</b>혼자 오셨다면 먼저 모집해 보십시오</div>`}</div>
+    <div class="cards">${c.posts.map(p => gameCard(p, true)).join('') || `<div class="empty" style="padding:28px 16px"><b>열린 게임이 없어요</b>혼자 오셨다면 먼저 모집해 보세요</div>`}</div>
     <div class="pad" style="margin-top:14px"><button class="btn line sm" id="np">게임 모집하기</button></div>
     <div class="sep"></div>
     ${sec('이 코트의 착장', fits.length)}
-    ${c.top_shoes.length ? `<div class="rank">${c.top_shoes.map((s, i) => `<div class="rk"><span class="no n">${i + 1}</span><b>${esc(s.shoes)}</b><span>${s.n}명${s.grip ? ` · 접지 ${s.grip}` : ''}</span></div>`).join('')}</div>` : `<p class="hint">아직 올라온 착장이 없습니다. 오늘 신고 오신 신발을 남겨 주십시오.</p>`}
+    ${c.top_shoes.length ? `<div class="rank">${c.top_shoes.map((s, i) => `<div class="rk"><span class="no n">${i + 1}</span><b>${esc(s.shoes)}</b><span>${s.n}명${s.grip ? ` · 접지 ${s.grip}` : ''}</span></div>`).join('')}</div>` : `<p class="hint">아직 올라온 착장이 없어요. 오늘 신고 오신 신발을 남겨 주세요.</p>`}
     ${fits.slice(0, 3).map(f => fitCard(f, false)).join('')}
     <div class="pad" style="margin-top:14px"><button class="btn line sm" id="nf">착장 올리기</button></div>
     <div class="sep"></div>
@@ -458,25 +556,25 @@ async function courtView(id) {
     ${sec('코트 정보')}
     <dl class="kv">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
     <div class="links"><a href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener noreferrer">네이버 지도</a><a href="https://map.kakao.com/link/search/${q}" target="_blank" rel="noopener noreferrer">카카오맵</a>${c.phone ? `<a href="tel:${esc(c.phone)}">전화 문의</a>` : `<span style="opacity:.35">전화 없음</span>`}</div>
-    <p class="notes">이용료·예약·사용 제한은 방문 전에 지도 앱이나 관리 주체에 확인해 주십시오. 비어 있는 항목은 아직 확인되지 않은 정보입니다.</p>`;
-  $('#ci').onclick = () => withNick(() => act(() => api(`api/courts/${id}/${here ? 'checkout' : 'checkin'}`, 'POST', {nickname}), here ? '체크아웃했습니다' : '체크인했습니다. 즐거운 경기 되십시오'));
+    <p class="notes">이용료·예약·사용 제한은 방문 전에 지도 앱이나 관리 주체에 확인해 주세요. 비어 있는 항목은 아직 확인되지 않은 정보입니다.</p>`;
+  $('#ci').onclick = () => withNick(() => act(() => api(`api/courts/${id}/${here ? 'checkout' : 'checkin'}`, 'POST', {nickname}), here ? '체크아웃했어요' : '체크인했어요. 즐거운 경기 되세요'));
   $('#sh2').onclick = shareFn; $('#rp').onclick = () => reportSheet(id, c);
   $('#np').onclick = () => withNick(() => gameSheet(id)); $('#nf').onclick = () => withNick(() => fitSheet(id));
-  view.querySelectorAll('[data-cond]').forEach(b => b.onclick = () => act(() => api(`api/courts/${id}/condition`, 'POST', {tag: b.dataset.cond}), '알려 주셔서 감사합니다'));
+  view.querySelectorAll('[data-cond]').forEach(b => b.onclick = () => act(() => api(`api/courts/${id}/condition`, 'POST', {tag: b.dataset.cond}), '알려 주셔서 고마워요'));
   bindGames(); bindFits(); bindGo(); fab(null); nav('', 0);
 }
 
 /* ---------- 시트: 제보 / 게임 / 착장 ---------- */
 function reportSheet(id, c) {
   let n = c.people || 0;
-  openSheet(`<h4>지금 몇 명 있습니까?</h4><div class="sub">${esc(c.name)} · 체크인하지 않은 인원까지 세어 주십시오. 30분간 반영됩니다.</div>
+  openSheet(`<h4>지금 몇 명 있나요?</h4><div class="sub">${esc(c.name)} · 체크인하지 않은 인원까지 세어 주세요. 30분간 반영돼요.</div>
     <div class="step"><button id="mn" aria-label="줄이기">−</button><output id="no" class="n">${n}</output><button id="pl" aria-label="늘리기">+</button></div>
     <div class="quick">${[0, 2, 4, 6, 8, 10, 14].map(v => `<button data-v="${v}">${v}</button>`).join('')}</div>
     <div style="height:18px"></div><button class="btn" id="go">제보하기</button>`, s => {
     const o = s.querySelector('#no'), set = v => { n = Math.max(0, Math.min(40, v)); o.textContent = n; };
     s.querySelector('#mn').onclick = () => set(n - 1); s.querySelector('#pl').onclick = () => set(n + 1);
     s.querySelectorAll('[data-v]').forEach(b => b.onclick = () => set(+b.dataset.v));
-    s.querySelector('#go').onclick = () => { closeSheet(); act(() => api(`api/courts/${id}/report`, 'POST', {count: n}), '제보가 완료되었습니다. 감사합니다'); };
+    s.querySelector('#go').onclick = () => { closeSheet(); act(() => api(`api/courts/${id}/report`, 'POST', {count: n}), '제보가 완료되었습니다. 고마워요'); };
   });
 }
 const courtOptions = sel => `<option value="">코트 선택 안 함</option>` + courts.map(c => `<option value="${c.id}" ${c.id === sel ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
@@ -487,8 +585,8 @@ async function gameSheet(cid, date) {
   let fmt = '5vs5', level = '누구나', cap = CAP[fmt];
   const days = Array.from({length: 14}, (_, i) => ymd(kst(i)));
   const hh = kst().toISOString().slice(11, 13), nextHour = String(Math.min(23, +hh + 1)).padStart(2, '0') + ':00';
-  openSheet(`<h4>게임 모집</h4><div class="sub">경기 시작 3시간 뒤까지 목록에 표시됩니다.</div>
-    ${cid ? '' : `<label class="field"><span>코트</span><select class="in" id="pc">${courtOptions('').replace('코트 선택 안 함', '코트를 선택해 주십시오')}</select></label>`}
+  openSheet(`<h4>게임 모집</h4><div class="sub">경기 시작 3시간 뒤까지 목록에 표시돼요.</div>
+    ${cid ? '' : `<label class="field"><span>코트</span><select class="in" id="pc">${courtOptions('').replace('코트 선택 안 함', '코트를 선택해 주세요')}</select></label>`}
     <label class="field"><span>제목</span><input class="in" id="pt" maxlength="60" placeholder="예) 5대5 한 판 뛰실 분"></label>
     <div class="two"><label class="field"><span>날짜</span><select class="in" id="pd">${days.map((d, i) => `<option value="${d}" ${d === (date || days[0]) ? 'selected' : ''}>${i === 0 ? '오늘 · ' : i === 1 ? '내일 · ' : ''}${fmtDate(d)}</option>`).join('')}</select></label>
     <label class="field"><span>시간</span><input class="in" id="ptm" type="time" value="${nextHour}"></label></div>
@@ -501,10 +599,10 @@ async function gameSheet(cid, date) {
     opts(s.querySelector('#ol'), LEVELS, level, v => { level = v; });
     s.querySelector('#pt').focus();
     s.querySelector('#go').onclick = () => {
-      const court = cid || s.querySelector('#pc').value; if (!court) return toast('코트를 선택해 주십시오');
+      const court = cid || s.querySelector('#pc').value; if (!court) return toast('코트를 선택해 주세요');
       api(`api/courts/${court}/posts`, 'POST', {nickname, title: s.querySelector('#pt').value, play_date: s.querySelector('#pd').value, play_time: s.querySelector('#ptm').value,
         capacity: parseInt(s.querySelector('#pn').value, 10) || 2, fmt, level, link: s.querySelector('#pl').value})
-        .then(() => { closeSheet(); toast('등록했습니다'); gdate = s.querySelector('#pd').value; render(); }).catch(e => toast(e.message));
+        .then(() => { closeSheet(); toast('등록했어요'); gdate = s.querySelector('#pd').value; render(); }).catch(e => toast(e.message));
     };
   });
 }
@@ -516,15 +614,15 @@ function compress(file, max = 960) {
       const k = Math.min(1, max / Math.max(img.width, img.height)), cv = document.createElement('canvas');
       cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
       cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(url);
-      res(cv.toDataURL('image/jpeg', .78));   // 재인코딩하므로 위치 등 EXIF 정보는 제거됩니다
+      res(cv.toDataURL('image/jpeg', .78));   // 재인코딩하므로 위치 등 EXIF 정보는 제거돼요
     };
-    img.onerror = () => rej(new Error('사진을 읽을 수 없습니다')); img.src = url;
+    img.onerror = () => rej(new Error('사진을 읽을 수 없어요')); img.src = url;
   });
 }
 async function fitSheet(cid) {
   if (!courts.length) await loadCourts();
   let grip = 0, photo = '';
-  openSheet(`<h4>착장 올리기</h4><div class="sub">오늘 신으신 신발과 복장을 남겨 주십시오. 신발 외에는 비워 두셔도 됩니다.</div>
+  openSheet(`<h4>착장 올리기</h4><div class="sub">오늘 신으신 신발과 복장을 남겨 주세요. 신발 외에는 비워 두셔도 돼요.</div>
     <label class="field"><span>코트</span><select class="in" id="fc">${courtOptions(cid || '')}</select></label>
     <label class="field"><span>신발 *</span><input class="in" id="fs" maxlength="50" placeholder="예) 나이키 KD 16"></label>
     <div class="two"><label class="field"><span>사이즈</span><input class="in" id="fz" maxlength="12" placeholder="270"></label>
@@ -534,7 +632,7 @@ async function fitSheet(cid) {
     <label class="field"><span>기타</span><input class="in" id="fe" maxlength="60" placeholder="양말·보호대"></label></div>
     <label class="field"><span>한 줄 후기</span><input class="in" id="fcm" maxlength="120" placeholder="이 코트에서 신어보니…"></label>
     <div class="field"><span>사진 (선택)</span><div class="photo"><div class="pv" id="pv">없음</div><label class="b" style="cursor:pointer">사진 고르기<input id="fp" type="file" accept="image/*" hidden></label></div></div>
-    <p class="hint" style="margin:10px 0 0">얼굴이 나온 사진은 본인 사진만 올려 주십시오. 사진의 위치 정보는 자동으로 삭제됩니다.</p>
+    <p class="hint" style="margin:10px 0 0">얼굴이 나온 사진은 본인 사진만 올려 주세요. 사진의 위치 정보는 자동으로 삭제돼요.</p>
     <div style="height:18px"></div><button class="btn" id="go">올리기</button>`, s => {
     const g = s.querySelector('#fg');
     g.innerHTML = [1, 2, 3, 4, 5].map(n => `<button data-g="${n}" style="padding:0 13px">${n}</button>`).join('');
@@ -547,7 +645,7 @@ async function fitSheet(cid) {
     s.querySelector('#go').onclick = () => {
       const v = id => s.querySelector('#' + id).value;
       api('api/fits', 'POST', {nickname, court_id: v('fc'), shoes: v('fs'), shoe_size: v('fz'), top: v('ft'), bottom: v('fb'), extra: v('fe'), comment: v('fcm'), grip, photo})
-        .then(() => { closeSheet(); toast('등록했습니다'); render(); }).catch(e => toast(e.message));
+        .then(() => { closeSheet(); toast('등록했어요'); render(); }).catch(e => toast(e.message));
     };
   });
 }
@@ -561,13 +659,13 @@ async function gamesView() {
   const days = Array.from({length: 14}, (_, i) => ymd(kst(i))), cnt = {}; ps.forEach(p => { const d = (p.play_at || '').slice(0, 10); cnt[d] = (cnt[d] || 0) + 1; });
   const list = ps.filter(p => (p.play_at || '').slice(0, 10) === gdate && (gfmt === '전체' || p.fmt === gfmt) && (glevel === '전체' || p.level === glevel || p.level === '누구나') && !(ghideFull && p.capacity - p.joined.length <= 0));
   view.innerHTML = `
-    <h1 class="h1">같이 뛸 사람을<br>찾아보십시오</h1>
+    <h1 class="h1">같이 뛸 사람,<br>여기서 찾아요</h1>
     <div class="dates">${days.map((d, i) => { const dt = new Date(d + 'T00:00:00Z'), w = dt.getUTCDay();
       return `<button class="dt ${d === gdate ? 'on' : ''} ${w === 6 ? 'sat' : w === 0 ? 'sun' : ''}" data-d="${d}"><span>${i === 0 ? '오늘' : WD[w]}</span><b class="n">${dt.getUTCDate()}</b>${cnt[d] ? '<i></i>' : ''}</button>`; }).join('')}</div>
     <div class="chips" style="padding-top:6px">${['전체', ...FORMATS].map(f => `<button class="chip ${f === gfmt ? 'on' : ''}" data-fm="${f}">${f === '전체' ? '형식 전체' : f}</button>`).join('')}
       ${['전체', '입문', '초급', '중급', '상급'].map(f => `<button class="chip ${f === glevel ? 'on' : ''}" data-lv="${f}">${f === '전체' ? '레벨 전체' : f}</button>`).join('')}</div>
     <div class="tgl"><span>${fmtDate(gdate)} · <b style="color:var(--ink)">${list.length}</b>건</span><button class="row" id="hf" style="display:flex;align-items:center;gap:8px">마감 가리기<span class="sw ${ghideFull ? 'on' : ''}"></span></button></div>
-    <div style="border-top:1px solid var(--line)">${list.map(p => gameCard(p, false)).join('') || `<div class="empty"><b>이 날짜에 열린 게임이 없습니다</b>직접 모집해 보십시오</div>`}</div>`;
+    <div class="cards">${list.map(p => gameCard(p, false)).join('') || `<div class="empty"><b>이 날짜에 열린 게임이 없어요</b>직접 모집해 보세요</div>`}</div>`;
   view.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { gdate = b.dataset.d; render(); });
   view.querySelectorAll('[data-fm]').forEach(b => b.onclick = () => { gfmt = b.dataset.fm; render(); });
   view.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { glevel = b.dataset.lv; render(); });
@@ -580,16 +678,16 @@ async function fitView() {
   topbar({right: meBtn()}); bindMe();
   const fs = await api('api/fits');
   view.innerHTML = `
-    <h1 class="h1">오늘 어떤 신발로<br>뛰셨습니까?</h1><p class="lead">코트 바닥마다 맞는 신발이 다릅니다. 신발·복장·접지력을 남기고 다른 이용자의 기록을 참고해 주십시오.</p>
+    <h1 class="h1">오늘 어떤 신발로<br>뛰었나요?</h1><p class="lead">코트 바닥마다 맞는 신발이 달라요. 신발·복장·접지력을 남기고 다른 사람 기록도 참고해 보세요.</p>
     <div class="banner" style="margin-top:14px"><img src="img/shoes.jpg" alt="" style="object-position:50% 70%"></div>
     ${sec('코트 바닥별 신발 가이드')}
     <div class="guide">
-      <div><b>고무 · 우레탄 바닥</b>접지가 좋아 미끄러짐은 적지만 급정지 시 발목에 무리가 갈 수 있습니다. 발목을 잘 잡아 주는 신발이 편합니다. (망원한강공원, 뚝섬한강공원)</div>
+      <div><b>고무 · 우레탄 바닥</b>접지가 좋아 미끄러짐은 적지만 급정지 시 발목에 무리가 갈 수 있어요. 발목을 잘 잡아 주는 신발이 편합니다. (망원한강공원, 뚝섬한강공원)</div>
       <div><b>아스팔트 · 콘크리트 바닥</b>밑창이 빨리 닳고 충격이 큽니다. 쿠셔닝과 내구성이 좋은 아웃도어용 농구화를 권합니다. (반포한강공원)</div>
-      <div><b>비 온 뒤</b>바닥이 미끄러우니 무리한 컷인은 피하십시오. 코트 화면의 "바닥 젖음" 제보를 확인해 보십시오.</div>
-    </div><p class="hint">일반적인 가이드입니다. 코트 상태는 시기에 따라 달라질 수 있습니다.</p>
+      <div><b>비 온 뒤</b>바닥이 미끄러우니 무리한 컷인은 피하세요. 코트 화면의 "바닥 젖음" 제보를 확인해 보세요.</div>
+    </div><p class="hint">일반적인 가이드입니다. 코트 상태는 시기에 따라 달라질 수 있어요.</p>
     <div class="sep"></div>${sec('최근 착장', fs.length)}
-    <div style="margin-top:6px;border-top:1px solid var(--line)">${fs.map(f => fitCard(f)).join('') || `<div class="empty"><b>아직 올라온 착장이 없습니다</b>첫 번째 착장을 남겨 주십시오</div>`}</div>`;
+    <div class="cards">${fs.map(f => fitCard(f)).join('') || `<div class="empty"><b>아직 올라온 착장이 없어요</b>첫 번째 착장을 남겨 주세요</div>`}</div>`;
   bindFits(); bindGo(); fab('착장 올리기', () => withNick(() => fitSheet(''))); nav('fit', 0);
 }
 
@@ -598,20 +696,20 @@ async function meView() {
   const cr = await fetch('img/credits.json').then(r => r.json()).catch(() => ({}));
   const [m, mf] = nickname ? await Promise.all([api('api/me?nickname=' + encodeURIComponent(nickname)), api('api/me/fits?nickname=' + encodeURIComponent(nickname))]) : [{checkin: null, posts: []}, []];
   view.innerHTML = `
-    <h1 class="h1">${esc(nickname || '닉네임이 없습니다')}</h1>
-    <p class="lead">${nickname ? '코트에서 이 이름으로 표시됩니다' : '닉네임을 정하면 체크인·참가·착장 등록을 할 수 있습니다'}</p>
+    <h1 class="h1">${esc(nickname || '닉네임이 없어요')}</h1>
+    <p class="lead">${nickname ? '코트에서 이 이름으로 표시돼요' : '닉네임을 정하면 체크인·참가·착장 등록을 할 수 있어요'}</p>
     <div class="pad" style="margin-top:14px"><button class="btn line sm" id="ed">${nickname ? '닉네임 변경' : '닉네임 정하기'}</button></div>
     <div class="sep"></div>${sec('현재 체크인')}
-    ${m.checkin ? `<button class="crow" data-go="c/${m.checkin.court_id}" style="margin-top:6px;border-top:1px solid var(--line)"><div class="r1"><div class="cn">${esc(m.checkin.name)}</div><span class="cm">보기 ›</span></div><div class="cm">${ago(m.checkin.ago)} 체크인 · 3시간 뒤 자동 해제</div></button>` : `<div class="empty" style="padding:24px 16px">체크인 중인 코트가 없습니다</div>`}
+    ${m.checkin ? `<div class="list"><button class="crow" data-go="c/${m.checkin.court_id}"><div class="r1"><div class="cn">${esc(m.checkin.name)}</div><span class="cm">보기 ›</span></div><div class="cm">${ago(m.checkin.ago)} 체크인 · 3시간 뒤 자동 해제</div></button></div>` : `<div class="empty" style="padding:24px 16px">체크인 중인 코트가 없어요</div>`}
     <div class="sep"></div>${sec('내가 참가한 게임', m.posts.length)}
-    <div style="margin-top:6px;border-top:1px solid var(--line)">${m.posts.map(p => gameCard(p, true)).join('') || `<div class="empty" style="padding:24px 16px">참가 중인 게임이 없습니다</div>`}</div>
+    <div class="cards">${m.posts.map(p => gameCard(p, true)).join('') || `<div class="empty" style="padding:24px 16px">참가 중인 게임이 없어요</div>`}</div>
     <div class="sep"></div>${sec('내 착장', mf.length)}
-    <div style="margin-top:6px;border-top:1px solid var(--line)">${mf.map(f => fitCard(f)).join('') || `<div class="empty" style="padding:24px 16px">올린 착장이 없습니다</div>`}</div>
+    <div class="cards">${mf.map(f => fitCard(f)).join('') || `<div class="empty" style="padding:24px 16px">올린 착장이 없어요</div>`}</div>
     <div class="sep"></div>${sec('이용 안내')}
     <div class="notes" style="padding-top:10px"><b style="color:var(--ink)">혼잡도</b> 체크인한 사람 수와 최근 30분 제보 중 큰 값입니다. 5명 미만은 한산, 10명 미만은 보통, 10명 이상은 혼잡입니다.<br>
-      <b style="color:var(--ink)">자동 정리</b> 체크인은 3시간, 현장 상태는 2시간 뒤 사라지며, 게임은 시작 3시간 뒤 목록에서 제외됩니다.<br>
-      <b style="color:var(--ink)">홈 화면에 추가</b> 브라우저 메뉴에서 "홈 화면에 추가"를 누르면 앱처럼 사용할 수 있습니다.<br>
-      <b style="color:var(--ink)">주의</b> 이용자 제보 기반이므로 실제와 다를 수 있습니다. 전화번호 등 개인정보는 글에 쓰지 마십시오.<br><br>
+      <b style="color:var(--ink)">자동 정리</b> 체크인은 3시간, 현장 상태는 2시간 뒤 사라지며, 게임은 시작 3시간 뒤 목록에서 제외돼요.<br>
+      <b style="color:var(--ink)">홈 화면에 추가</b> 브라우저 메뉴에서 "홈 화면에 추가"를 누르면 앱처럼 사용할 수 있어요.<br>
+      <b style="color:var(--ink)">주의</b> 이용자 제보 기반이므로 실제와 다를 수 있어요. 전화번호 등 개인정보는 글에 쓰지 마세요.<br><br>
       <b style="color:var(--ink)">사진 출처</b> 화면의 사진은 모두 CC0(저작권 제한 없음)이며, 실제 코트 사진이 아닌 분위기용 이미지입니다.<br>
       ${Object.values(cr).map(c => `${esc(c.artist)} · <a href="${esc(c.page)}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">${esc(c.license)}</a>`).join('<br>')}</div>`;
   $('#ed').onclick = () => nickSheet(); bindGo(); bindGames(); bindFits(); fab(null); nav('me', 0);
@@ -630,7 +728,7 @@ async function render() {
     else await homeView();
     scrollTo(0, y);
   } catch (e) {
-    view.innerHTML = `<div class="empty"><b>불러오지 못했습니다</b>${esc(e.message)}<br><br><button class="btn line sm" style="width:auto;display:inline-flex;padding:0 22px" onclick="render()">다시 시도</button></div>`;
+    view.innerHTML = `<div class="empty"><b>불러오지 못했어요</b>${esc(e.message)}<br><br><button class="btn line sm" style="width:auto;display:inline-flex;padding:0 22px" onclick="render()">다시 시도</button></div>`;
   } finally { busy = false; }
 }
 addEventListener('hashchange', () => { closeSheet(); scrollTo(0, 0); render(); });

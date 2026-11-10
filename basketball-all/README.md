@@ -16,8 +16,13 @@ FastAPI + SQLite + 바닐라 JS (빌드 과정 없음).
 - 코트 정보(`main.py`의 `COURTS`)는 공개 자료 기준이며 비어 있는 항목은 확인되지 않은 정보입니다.
 - 사진은 모두 CC0이며 출처는 `static/img/credits.json`에 있습니다.
 
-## GitHub Pages 데모
+## 실제 서비스 (GitHub Pages + Supabase)
 주소: https://wonjunohm.github.io/court/
 
-`docs/` 폴더는 서버 없이 브라우저만으로 도는 체험판입니다 (`python3 demo/build.py`로 `static/`에서 다시 만듭니다).
-`main`에 푸시하면 `.github/workflows/pages.yml`이 자동으로 배포합니다 (Settings → Pages 의 Source는 **GitHub Actions**). 데이터는 각자의 브라우저에만 저장됩니다.
+- 화면은 `docs/`(GitHub Pages), 데이터는 Supabase(서울) 프로젝트 `court`에 저장되어 모든 이용자가 같은 정보를 봅니다.
+- DB 설정은 `supabase/schema.sql` 하나에 있습니다. Supabase → SQL Editor 에 붙여넣고 Run (여러 번 실행해도 안전).
+  표는 RLS로 막혀 있고, 앱은 `api_*` 함수만 호출합니다. 규칙(검증·만료·닉네임 주인 확인)은 함수 안에 있습니다.
+- 사진은 Storage `fits` 버킷(공개 읽기, JPEG 600KB 이하 업로드만)에 저장됩니다.
+- `static/`을 고친 뒤 `python3 demo/build.py`로 `docs/`를 다시 만들고 푸시하면 자동 배포됩니다.
+  브라우저에만 저장되는 체험판이 필요하면 `python3 demo/build.py --demo 출력폴더`.
+- `main.py`(FastAPI + SQLite)는 내 컴퓨터에서 개발·테스트할 때 쓰는 서버입니다.

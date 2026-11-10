@@ -7,6 +7,7 @@ create table if not exists courts(
   id text primary key, name text not null, area text not null, address text default '', hoops text default '',
   surface text default '', lights text default '', phone text default '', map_query text default '', note text default '',
   sort int default 0);
+alter table courts add column if not exists district text default '';
 create table if not exists nicks(nickname text primary key, key_hash text not null, created timestamptz default now());
 create table if not exists checkins(id bigserial primary key, court_id text references courts on delete cascade, nickname text not null,
   created timestamptz default now(), out boolean default false);
@@ -38,19 +39,19 @@ do $$ declare t text; begin
   end loop;
 end $$;
 
-insert into courts(id,name,area,address,hoops,surface,lights,phone,map_query,note,sort) values
- ('mangwon-yusuji','망원유수지 농구장','마포','마포구 월드컵로25길 190 (망원유수지체육공원)','농구장 3면','','','02-3153-9873','망원유수지체육공원 농구장','상시 개방 · 주차 · 화장실 · 우천·기상특보 시 사용 제한',1),
- ('hg-mangwon','망원한강공원 농구장','한강','망원한강공원','골대 4개 (풀코트 2)','고무','조명 있음','02-3780-0601','망원한강공원 농구장','화장실 · 급수대',2),
- ('hg-yanghwa','양화한강공원 농구장','한강','양화한강공원','','','','','양화한강공원 농구장','',3),
- ('hg-nanji','난지한강공원 농구장','한강','난지한강공원','','','','02-3780-0611','난지한강공원 농구장','',4),
- ('hg-ichon','이촌한강공원 농구장','한강','이촌한강공원','','','','02-3780-0551','이촌한강공원 농구장','',5),
- ('hg-banpo','반포한강공원 농구장','한강','반포한강공원','','아스팔트','','02-3780-0541','반포한강공원 농구장','바닥이 거칠어 부상 주의. 인근 반포종합운동장을 더 많이 이용',6),
- ('hg-jamwon','잠원한강공원 농구장','한강','잠원한강공원','','','','','잠원한강공원 농구장','',7),
- ('hg-ttukseom','뚝섬한강공원 농구장','한강','뚝섬한강공원','골대 8개 (4개씩 2곳)','우레탄','','','뚝섬한강공원 농구장','뚝섬역 쪽과 먼 쪽 두 곳으로 나뉨 · 장애인 전용 농구장 별도',8),
- ('hg-jamsil','잠실한강공원 농구장','한강','잠실한강공원','','','','02-3708-0511','잠실한강공원 농구장','',9),
- ('hg-gwangnaru','광나루한강공원 농구장','한강','광나루한강공원','','','','02-3780-0501','광나루한강공원 농구장','',10)
+insert into courts(id,name,area,address,hoops,surface,lights,phone,map_query,note,sort,district) values
+ ('mangwon-yusuji','망원유수지 농구장','마포','마포구 월드컵로25길 190 (망원유수지체육공원)','농구장 3면','','','02-3153-9873','망원유수지체육공원 농구장','상시 개방 · 주차 · 화장실 · 우천·기상특보 시 사용 제한',1,'마포구'),
+ ('hg-mangwon','망원한강공원 농구장','한강','망원한강공원','골대 4개 (풀코트 2)','고무','조명 있음','02-3780-0601','망원한강공원 농구장','화장실 · 급수대',2,'마포구'),
+ ('hg-yanghwa','양화한강공원 농구장','한강','양화한강공원','','','','','양화한강공원 농구장','',3,'영등포구'),
+ ('hg-nanji','난지한강공원 농구장','한강','난지한강공원','','','','02-3780-0611','난지한강공원 농구장','',4,'마포구'),
+ ('hg-ichon','이촌한강공원 농구장','한강','이촌한강공원','','','','02-3780-0551','이촌한강공원 농구장','',5,'용산구'),
+ ('hg-banpo','반포한강공원 농구장','한강','반포한강공원','','아스팔트','','02-3780-0541','반포한강공원 농구장','바닥이 거칠어 부상 주의. 인근 반포종합운동장을 더 많이 이용',6,'서초구'),
+ ('hg-jamwon','잠원한강공원 농구장','한강','잠원한강공원','','','','','잠원한강공원 농구장','',7,'서초구'),
+ ('hg-ttukseom','뚝섬한강공원 농구장','한강','뚝섬한강공원','골대 8개 (4개씩 2곳)','우레탄','','','뚝섬한강공원 농구장','뚝섬역 쪽과 먼 쪽 두 곳으로 나뉨 · 장애인 전용 농구장 별도',8,'광진구'),
+ ('hg-jamsil','잠실한강공원 농구장','한강','잠실한강공원','','','','02-3708-0511','잠실한강공원 농구장','',9,'송파구'),
+ ('hg-gwangnaru','광나루한강공원 농구장','한강','광나루한강공원','','','','02-3780-0501','광나루한강공원 농구장','',10,'강동구')
 on conflict (id) do update set name=excluded.name, area=excluded.area, address=excluded.address, hoops=excluded.hoops,
-  surface=excluded.surface, lights=excluded.lights, phone=excluded.phone, map_query=excluded.map_query, note=excluded.note, sort=excluded.sort;
+  surface=excluded.surface, lights=excluded.lights, phone=excluded.phone, map_query=excluded.map_query, note=excluded.note, sort=excluded.sort, district=excluded.district;
 
 -- ---------- 내부 도우미 (anon 에게 열지 않음) ----------
 create or replace function _kst() returns timestamp language sql stable as $$ select (now() at time zone 'Asia/Seoul') $$;
