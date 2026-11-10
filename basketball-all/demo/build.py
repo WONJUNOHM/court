@@ -6,6 +6,8 @@ import json, os, shutil, sys
 
 SUPABASE_URL = 'https://hplueubmmzvytmozxmgf.supabase.co'
 SUPABASE_KEY = 'sb_publishable_WciyhYis0lISAPIpySi-aQ_JjesGQsO'   # 공개용 키 (표는 RLS 로 막혀 있음)
+CONTACT_EMAIL = ''          # 문의·삭제 요청 받을 메일 (개인정보처리방침·이용약관에 들어감)
+POLICY_DATE = '2026년 11월 10일'   # 처리방침·약관 시행일
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
@@ -28,6 +30,12 @@ else:
 i = h.index('<script>')
 h = h[:i] + '<script>\n' + backend + '\n</script>\n' + h[i:]
 open(os.path.join(out, 'index.html'), 'w', encoding='utf-8').write(h)
+# 개인정보처리방침·이용약관
+for f in ('privacy.html', 'terms.html'):
+    t = open(os.path.join(root, 'static', f), encoding='utf-8').read()
+    if not CONTACT_EMAIL: print('경고: CONTACT_EMAIL 이 비어 있어', f, '에 연락처가 빠져요')
+    t = t.replace('__EMAIL__', CONTACT_EMAIL or '(연락처 준비 중)').replace('__DATE__', POLICY_DATE)
+    open(os.path.join(out, f), 'w', encoding='utf-8').write(t)
 if not demo:   # 관리자 페이지 (주소/admin.html) — 실제 서비스판에만
     a = open(os.path.join(root, 'static', 'admin.html'), encoding='utf-8').read() \
         .replace('__SUPABASE_URL__', SUPABASE_URL).replace('__SUPABASE_KEY__', SUPABASE_KEY)
