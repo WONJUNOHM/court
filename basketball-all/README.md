@@ -17,7 +17,7 @@ FastAPI + SQLite + 바닐라 JS (빌드 과정 없음).
 - 사진은 모두 CC0이며 출처는 `static/img/credits.json`에 있습니다.
 
 ## 실제 서비스 (GitHub Pages + Supabase)
-주소: https://wonjunohm.github.io/court/
+주소: https://hangangcourt.vercel.app (Vercel, `basketball-all/docs` 배포) · 예전 주소 https://wonjunohm.github.io/court/ 도 동작
 
 - 화면은 `docs/`(GitHub Pages), 데이터는 Supabase(서울) 프로젝트 `court`에 저장되어 모든 이용자가 같은 정보를 봅니다.
 - DB 설정은 `supabase/schema.sql` 하나에 있습니다. Supabase → SQL Editor 에 붙여넣고 Run (여러 번 실행해도 안전).
