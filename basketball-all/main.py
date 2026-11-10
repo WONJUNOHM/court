@@ -1,7 +1,7 @@
 """코트 한눈에 — 동네 농구장 혼잡도 + 인원 모집 (FastAPI + SQLite).
 실행: uvicorn main:app --host 127.0.0.1 --port 8000
 """
-import base64, os, re, sqlite3, time, uuid
+import base64, hashlib, hmac, os, re, sqlite3, time, uuid
 from collections import defaultdict, deque
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -66,6 +66,7 @@ with db() as c:
         created TEXT DEFAULT CURRENT_TIMESTAMP);
     CREATE TABLE IF NOT EXISTS fit_likes(fit_id INTEGER, nickname TEXT, UNIQUE(fit_id, nickname));
     CREATE TABLE IF NOT EXISTS fit_reports(fit_id INTEGER, ip TEXT, UNIQUE(fit_id, ip));
+    CREATE TABLE IF NOT EXISTS nicks(nickname TEXT PRIMARY KEY, key_hash TEXT, created TEXT DEFAULT CURRENT_TIMESTAMP);
     """)
     for col in ("link TEXT DEFAULT ''", "play_at TEXT DEFAULT ''", "capacity INTEGER DEFAULT 0",
                 "level TEXT DEFAULT ''", "fmt TEXT DEFAULT ''"):
@@ -143,6 +144,7 @@ def posts_of(c, where, args):
 
 class Nick(BaseModel):
     nickname: str
+    key: str = ""
 
 
 class Report(BaseModel):
@@ -155,6 +157,7 @@ class Cond(BaseModel):
 
 class Post(BaseModel):
     nickname: str
+    key: str = ""
     title: str
     play_date: str          # YYYY-MM-DD (한국 시간)
     play_time: str          # HH:MM
@@ -169,6 +172,27 @@ def nick(s):
     if not s or len(s) > 20:
         raise HTTPException(400, "닉네임을 1~20자로 입력해 주십시오")
     return s
+
+
+def owner(c, name, key):
+    """닉네임을 처음 쓴 기기(브라우저 키)에만 묶는다. 다른 키로 같은 닉네임을 쓰면 거절."""
+    name = nick(name)
+    key = (key or "").strip()
+    if not 16 <= len(key) <= 128:
+        raise HTTPException(400, "앱을 새로고침한 뒤 다시 시도해 주십시오")
+    h = hashlib.sha256(key.encode()).hexdigest()
+    row = c.execute("SELECT key_hash FROM nicks WHERE nickname=?", (name,)).fetchone()
+    if row is None:
+        c.execute("INSERT INTO nicks(nickname, key_hash) VALUES(?,?)", (name, h))
+    elif not hmac.compare_digest(row["key_hash"], h):
+        raise HTTPException(403, "다른 기기에서 이미 쓰고 있는 닉네임입니다. 다른 닉네임을 정해 주십시오")
+    return name
+
+
+@app.post("/api/nick")
+def claim_nick(n: Nick):
+    with db() as c:
+        return {"ok": True, "nickname": owner(c, n.nickname, n.key)}
 
 
 def court_or_404(c, cid):
@@ -273,8 +297,8 @@ def me(nickname: str):
 
 @app.post("/api/courts/{cid}/checkin")
 def checkin(cid: str, n: Nick):
-    name = nick(n.nickname)
     with db() as c:
+        name = owner(c, n.nickname, n.key)
         court_or_404(c, cid)
         c.execute("UPDATE checkins SET out=1 WHERE nickname=? AND out=0", (name,))  # 다른 코트 체크인은 자동 해제
         c.execute("INSERT INTO checkins(court_id,nickname) VALUES(?,?)", (cid, name))
@@ -284,7 +308,8 @@ def checkin(cid: str, n: Nick):
 @app.post("/api/courts/{cid}/checkout")
 def checkout(cid: str, n: Nick):
     with db() as c:
-        c.execute("UPDATE checkins SET out=1 WHERE court_id=? AND nickname=? AND out=0", (cid, n.nickname.strip()))
+        name = owner(c, n.nickname, n.key)
+        c.execute("UPDATE checkins SET out=1 WHERE court_id=? AND nickname=? AND out=0", (cid, name))
     return {"ok": True}
 
 
@@ -325,6 +350,7 @@ def new_post(cid: str, p: Post):
         raise HTTPException(400, "오픈채팅 링크는 https:// 로 시작해야 합니다")
     play_at = f"{p.play_date} {p.play_time}"
     with db() as c:
+        owner(c, name, p.key)
         court_or_404(c, cid)
         ok = c.execute("SELECT ? > datetime('now', '+9 hours', '-30 minutes') AND ? < datetime('now', '+9 hours', '+15 days')",
                        (play_at, play_at)).fetchone()[0]
@@ -338,8 +364,8 @@ def new_post(cid: str, p: Post):
 
 @app.post("/api/posts/{pid}/join")
 def join_post(pid: int, n: Nick):
-    name = nick(n.nickname)
     with db() as c:
+        name = owner(c, n.nickname, n.key)
         row = c.execute("SELECT capacity, need FROM posts WHERE id=?", (pid,)).fetchone()
         if not row:
             raise HTTPException(404)
@@ -354,14 +380,16 @@ def join_post(pid: int, n: Nick):
 @app.post("/api/posts/{pid}/leave")
 def leave_post(pid: int, n: Nick):
     with db() as c:
-        c.execute("DELETE FROM post_joins WHERE post_id=? AND nickname=?", (pid, n.nickname.strip()))
+        name = owner(c, n.nickname, n.key)
+        c.execute("DELETE FROM post_joins WHERE post_id=? AND nickname=?", (pid, name))
     return {"ok": True}
 
 
 @app.post("/api/posts/{pid}/delete")
 def delete_post(pid: int, n: Nick):
     with db() as c:
-        c.execute("DELETE FROM posts WHERE id=? AND nickname=?", (pid, n.nickname.strip()))
+        name = owner(c, n.nickname, n.key)
+        c.execute("DELETE FROM posts WHERE id=? AND nickname=?", (pid, name))
         c.execute("DELETE FROM post_joins WHERE post_id NOT IN (SELECT id FROM posts)")
     return {"ok": True}
 
@@ -373,6 +401,7 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 class Fit(BaseModel):
     nickname: str
+    key: str = ""
     court_id: str = ""
     shoes: str
     shoe_size: str = ""
@@ -411,6 +440,8 @@ def new_fit(f: Fit):
     if not 0 <= f.grip <= 5:
         raise HTTPException(400, "접지력은 1~5점입니다")
     clip = lambda s, n: s.strip()[:n]
+    with db() as c:  # 사진을 저장하기 전에 닉네임 주인부터 확인
+        owner(c, name, f.key)
     photo = ""
     if f.photo:
         m = re.match(r"^data:image/jpeg;base64,([A-Za-z0-9+/=]+)$", f.photo)
@@ -434,8 +465,8 @@ def new_fit(f: Fit):
 
 @app.post("/api/fits/{fid}/like")
 def like_fit(fid: int, n: Nick):
-    name = nick(n.nickname)
     with db() as c:
+        name = owner(c, n.nickname, n.key)
         if c.execute("SELECT 1 FROM fit_likes WHERE fit_id=? AND nickname=?", (fid, name)).fetchone():
             c.execute("DELETE FROM fit_likes WHERE fit_id=? AND nickname=?", (fid, name))
         else:
@@ -458,7 +489,8 @@ def report_fit(fid: int, request: Request):
 @app.post("/api/fits/{fid}/delete")
 def delete_fit(fid: int, n: Nick):
     with db() as c:
-        row = c.execute("SELECT photo FROM fits WHERE id=? AND nickname=?", (fid, n.nickname.strip())).fetchone()
+        name = owner(c, n.nickname, n.key)
+        row = c.execute("SELECT photo FROM fits WHERE id=? AND nickname=?", (fid, name)).fetchone()
         if row:
             c.execute("DELETE FROM fits WHERE id=?", (fid,))
             if row["photo"]:

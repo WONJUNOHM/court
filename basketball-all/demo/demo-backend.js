@@ -90,6 +90,7 @@
       }
       if (path === 'api/me/fits') return fits(f => f.nick === (q.nickname || '').trim());
     } else {
+      if (path === 'api/nick') return {ok: true, nickname: V.nick(body.nickname)};
       if ((m = path.match(/^api\/courts\/([^/]+)\/(checkin|checkout|report|condition|posts)$/))) {
         const c = V.court(m[1]), act = m[2];
         if (act === 'checkin') { const n = V.nick(body.nickname); S.checkins.forEach(x => { if (x.nick === n && !x.out) x.out = true; }); S.checkins.push({court: c.id, nick: n, t: nowMs(), out: false}); }
