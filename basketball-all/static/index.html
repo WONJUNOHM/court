@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f3f4f6">
+<meta name="theme-color" content="#eef1ec">
 <meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,6 +12,8 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">
 <title>코트 한눈에</title>
 <style>
 :root{
@@ -104,7 +106,7 @@ a{color:inherit;text-decoration:none}
 .bigrow{display:flex;align-items:baseline;gap:6px;margin-top:12px}
 .bigrow b{font-size:68px;line-height:1;font-weight:800;letter-spacing:-.06em}
 .bigrow span{font-size:20px;font-weight:700;color:var(--sub)}
-.sum .seg{margin-top:16px}
+.sum .court{margin:16px 0 4px}
 .fresh{font-size:13px;color:var(--sub);margin-top:12px}
 .tg{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .cond{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 0}
@@ -213,83 +215,148 @@ select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%
 .skel{height:84px;margin:0 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,transparent,rgba(0,0,0,.04),transparent);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes fade{from{opacity:0}}@keyframes up{from{transform:translateY(30px);opacity:.5}}@keyframes sh{from{background-position:200% 0}to{background-position:-200% 0}}
 [hidden]{display:none!important}
-/* ===== 2026-11 디자인 다듬기: 회색 바탕 + 흰 카드, 검색, 히어로 ===== */
-:root{--page:#f3f4f6;--card:#fff;--shadow:0 1px 2px rgba(17,24,39,.04),0 6px 18px rgba(17,24,39,.06);--r:20px}
-html,body{background:var(--page)}
-.app{background:var(--page)}
-@media (min-width:520px){body{background:#e6e8ec}.app{box-shadow:0 0 0 1px #e1e4e8,0 30px 60px rgba(0,0,0,.08)}}
-.top{background:rgba(243,244,246,.86);padding-top:calc(12px + env(safe-area-inset-top))}
-.brand{font-size:20px;gap:9px}
-.brand .logo{width:28px;height:28px;flex:none;filter:drop-shadow(0 3px 6px rgba(232,71,12,.3))}
-.ib.me{background:var(--card);box-shadow:var(--shadow)}
-.h1{font-size:27px;margin-top:10px}
-.lead{line-height:1.6}
-/* 히어로 */
-.hero{display:block;margin:8px 16px 0;padding:22px 20px 18px;border-radius:26px;color:#fff;position:relative;overflow:hidden;cursor:pointer;
-  background:radial-gradient(140% 120% at 100% 0%,#ff8a4c 0%,#e8470c 34%,#7a2a0e 64%,#17191d 92%);box-shadow:0 14px 30px rgba(232,71,12,.25)}
-.hero:before{content:"";position:absolute;right:-46px;top:-46px;width:190px;height:190px;border-radius:50%;
-  border:2px solid rgba(255,255,255,.18);background:linear-gradient(90deg,transparent 49%,rgba(255,255,255,.16) 49% 51%,transparent 51%),linear-gradient(0deg,transparent 49%,rgba(255,255,255,.16) 49% 51%,transparent 51%)}
-.hero small{font-size:13px;font-weight:600;opacity:.85}
-.hero strong{display:block;font-size:24px;line-height:1.3;font-weight:800;letter-spacing:-.045em;margin:4px 0 10px;max-width:85%}
-.hrow{display:flex;align-items:center;gap:8px;font-size:14px}
-.hrow b{font-size:18px;font-weight:800}
-.hrow span:not(.tag){opacity:.8}
-.hero .tag{background:rgba(255,255,255,.95)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18)}
-.stats div{display:flex;flex-direction:column;gap:1px}
-.stats b{font-size:21px;font-weight:800;letter-spacing:-.03em}
-.stats span{font-size:11.5px;opacity:.78;font-weight:600}
+/* ===== 코트 한눈에 · 야외 코트 디자인 =====
+   바탕은 코트 바닥 옆 보도블록 같은 서늘한 회녹색, 코트는 한강 코트의 초록, 선은 흰 페인트, 강조는 농구공 주황 하나.
+   숫자와 제목은 전광판 같은 Black Han Sans, 본문은 Pretendard. */
+:root{
+  --paper:#eef1ec;--sheet:#fff;--court:#2f6b4f;--court-2:#285c44;--paint:#fff;--ball:#f26b1d;--ball-ink:#c4500d;
+  --ink:#1b2420;--sub:#5f6b64;--faint:#a3aca6;--rule:#d9dfd8;--s1:#e4e9e3;--s2:#d6ddd5;
+  --accent:var(--ball);--accent-soft:#fdebdf;
+  --calm:#16924f;--calm-soft:#dff3e7;--mid:#c98500;--mid-soft:#fbf0d6;--busy:#d23a2a;--busy-soft:#fbe3df;--unk:#7d8882;--unk-soft:#e6eae5;
+  --disp:"Black Han Sans","Pretendard Variable",Pretendard,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1)
+}
+html,body,.app{background:var(--paper)}
+@media (min-width:520px){body{background:#dfe4de}.app{box-shadow:0 0 0 1px #d3dad2}}
+.top{background:rgba(238,241,236,.88);padding-top:calc(12px + env(safe-area-inset-top))}
+.brand{font-family:var(--disp);font-weight:400;font-size:22px;letter-spacing:-.02em;gap:8px}
+.brand .logo{width:26px;height:26px;flex:none}
+.ttl{font-family:var(--disp);font-weight:400;font-size:19px;letter-spacing:-.01em}
+.ib.me{background:var(--sheet);border:1px solid var(--rule)}
+.ib.spin svg{animation:spin .7s linear infinite}
+.h1{font-family:var(--disp);font-weight:400;font-size:32px;line-height:1.18;letter-spacing:-.02em;margin-top:12px}
+.lead{line-height:1.65}
+.sec h3{font-family:var(--disp);font-weight:400;font-size:21px;letter-spacing:-.01em}
+.sec h3 em{font-family:var(--disp)}
+.n,.cnum,.bigrow b,.gt b,.stats b,.step output{font-family:var(--disp);font-weight:400}
+
+/* 홈: 코트 한 면을 위에서 본 그림이 주인공 */
+.hero{display:block;margin:6px 16px 0;padding:18px 18px 16px;border-radius:24px;background:var(--court);color:var(--paint);cursor:pointer;position:relative;overflow:hidden}
+.hero:active{transform:scale(.99)}
+.hero .live{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;opacity:.9}
+.hero .live i{width:8px;height:8px;border-radius:50%;background:#7ff0a8;box-shadow:0 0 0 0 rgba(127,240,168,.6);animation:pulse 2s infinite}
+.hero h2{margin:6px 0 0;font-family:var(--disp);font-weight:400;font-size:30px;line-height:1.15;letter-spacing:-.02em}
+.court{display:block;width:100%;height:auto;margin:14px 0 12px}
+.court .ln{fill:none;stroke:rgba(255,255,255,.85);stroke-width:1.4}
+.court .floor{fill:var(--court-2)}
+.court .pl{fill:var(--ball);stroke:#fff;stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:drop .5s var(--spring) both;animation-delay:var(--d)}
+.court .pl.me{fill:#fff;stroke:var(--ball)}
+.hero .row{display:flex;align-items:flex-end;gap:10px}
+.hero .big{font-family:var(--disp);font-size:52px;line-height:.9;letter-spacing:-.02em}
+.hero .big small{font-size:20px;margin-left:2px}
+.hero .row .tag{background:#fff;margin-bottom:6px}
+.hero .row .where{margin:0 0 7px auto;font-size:13px;opacity:.85}
+.hero .says{margin:12px 0 0;padding-top:12px;border-top:1px dashed rgba(255,255,255,.35);font-size:13.5px;line-height:1.5;opacity:.92}
+.hero .says b{font-family:var(--disp);font-weight:400;font-size:16px}
+.hero.empty-court h2{font-size:24px}
+
 /* 검색 */
-.search{display:flex;align-items:center;gap:10px;margin:16px 16px 0;height:52px;padding:0 14px 0 16px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);border:1.5px solid transparent;transition:border-color .15s}
-.search:focus-within{border-color:var(--accent)}
+.search{display:flex;align-items:center;gap:10px;margin:16px 16px 0;height:50px;padding:0 12px 0 15px;border-radius:14px;background:var(--sheet);border:1.5px solid var(--rule);transition:border-color .15s}
+.search:focus-within{border-color:var(--ink)}
 .search>svg{width:20px;height:20px;color:var(--sub);flex:none}
 .search input{flex:1;min-width:0;border:0;outline:none;background:none;font-size:16px;height:100%}
 .search input::placeholder{color:var(--faint)}
 .search input::-webkit-search-cancel-button{display:none}
-.search button{width:28px;height:28px;border-radius:50%;background:var(--s2);display:grid;place-items:center;flex:none}
+.search button{width:28px;height:28px;border-radius:50%;background:var(--s1);display:grid;place-items:center;flex:none}
 .search button svg{width:14px;height:14px}
-/* 칩 */
 .chips{padding:12px 16px 2px}
-.chip{background:var(--card);border-color:transparent;box-shadow:0 1px 2px rgba(17,24,39,.06)}
-.chip svg{width:14px;height:14px;opacity:.6}
-.chip.on svg{opacity:1}
-.lhead{display:flex;justify-content:space-between;margin:14px 20px 8px;font-size:13px;color:var(--sub);font-weight:600}
-.lhead b{color:var(--ink)}
-/* 카드 목록 */
-.list,.cards{display:grid;gap:10px;padding:0 16px}
-.cards{margin-top:10px}
-.list .crow,.cards>.game,.cards>.fit{background:var(--card);border:0;border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
-.list .crow{transition:transform .12s}
-.list .crow:active{transform:scale(.985);background:var(--card)}
-.cards>.empty,.list>.empty{background:var(--card);border-radius:var(--r)}
-.skel{height:96px;margin:0;border:0;border-radius:var(--r);background-color:var(--card)}
-.cnum{font-size:16px}
-.seg{margin-top:14px}
-.sep{height:0;background:none;margin:16px 0 0}
-.sec{margin-top:24px}
-/* 상세 */
-.sum{background:var(--card);box-shadow:var(--shadow);border-radius:24px}
-.btn{border-radius:14px;box-shadow:0 6px 16px rgba(232,71,12,.22)}
-.btn.line,.btn.dark{box-shadow:none}
-.btn.line{background:var(--card)}
-.links a,.links span{background:var(--card);border-color:transparent;box-shadow:0 1px 2px rgba(17,24,39,.06)}
-.kv{background:var(--card);border-radius:var(--r);padding:0 16px;box-shadow:var(--shadow)}
-.kv dt:nth-last-child(2),.kv dd:last-child{border-bottom:0}
-.rank,.guide{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:0 16px}
-.guide{padding:0}.guide div+div{border-top:1px solid var(--line)}
-.rk:last-child{border-bottom:0}
-.chart{background:var(--card);border-radius:var(--r);padding:16px 14px 10px;height:130px;box-shadow:var(--shadow);margin-bottom:0}
-.dates{background:rgba(243,244,246,.94)}
-.dt.on{box-shadow:0 4px 10px rgba(0,0,0,.15)}
-.quote{background:var(--s1)}
-.banner{border-radius:var(--r)}
-.fab{background:var(--accent);box-shadow:0 10px 24px rgba(232,71,12,.35)}
-/* 하단 탭 */
-.nav>div{background:rgba(255,255,255,.94);border-top:0;box-shadow:0 -1px 0 var(--line),0 -8px 24px rgba(17,24,39,.05)}
-.nav button.on{color:var(--accent)}
-.nav button.on:before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:3px;margin-left:-11px;border-radius:0 0 3px 3px;background:var(--accent)}
-.sheet{border-radius:26px 26px 0 0}
-.toast{border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.chip{background:transparent;border:1.5px solid var(--s2);color:var(--ink);transition:background .15s,color .15s,border-color .15s}
+.chip:active{transform:scale(.96)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip.acc.on{background:var(--ball);border-color:var(--ball);color:#fff}
+.chip svg{width:14px;height:14px;opacity:.55}
+.lhead{display:flex;justify-content:space-between;margin:18px 16px 4px;font-size:13px;color:var(--sub);font-weight:600}
+.lhead b{color:var(--ink);font-family:var(--disp);font-weight:400;font-size:15px}
+
+/* 코트 목록: 카드 대신 전광판 숫자가 붙은 줄 */
+.list{padding:0 16px}
+.list .crow{display:grid;grid-template-columns:52px 1fr auto;gap:2px 12px;align-items:center;padding:16px 0;border-bottom:1px solid var(--rule);background:none;border-radius:0;transition:transform .15s var(--ease)}
+.list .crow:active{transform:translateX(4px);background:none}
+.crow .num{grid-row:1/3;font-family:var(--disp);font-size:34px;line-height:1;text-align:center}
+.crow .num small{display:block;font-family:"Pretendard Variable",Pretendard,sans-serif;font-size:11px;font-weight:700;margin-top:3px;letter-spacing:0}
+.crow .nm{font-weight:700;font-size:16.5px;letter-spacing:-.035em;min-width:0}
+.crow .sub{grid-column:2;font-size:12.5px;color:var(--sub);display:flex;flex-wrap:wrap;gap:4px 10px}
+.crow .sub em{font-style:normal;color:var(--ball-ink);font-weight:700}
+.crow .tag{grid-row:1/3;grid-column:3}
+.crow .dots{grid-column:2/4;display:flex;gap:4px;margin-top:8px}
+.crow .dots i{width:9px;height:9px;border-radius:50%;background:var(--s2)}
+.crow .dots i.f{background:currentColor}
+.list>.empty{padding:40px 8px}
+.skel{height:78px;margin:0;border:0;border-bottom:1px solid var(--rule);border-radius:0;background-color:transparent}
+.notes{color:var(--sub)}
+
+/* 게임·착장: 흰 종이 한 장씩, 그림자 대신 얇은 선 */
+.cards{display:grid;gap:10px;padding:0 16px;margin-top:10px}
+.cards>.game,.cards>.fit{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:16px}
+.cards>.empty{background:none}
+.gt b{font-size:26px;letter-spacing:-.01em}
+.pbar{height:6px;border-radius:3px;background:var(--s1)}
+.pbar i{background:var(--ball);transition:width .6s var(--ease)}
+.b.p{background:var(--ball);border-color:var(--ball)}
+.b:active,.btn:active,.like:active{transform:scale(.97)}
+.like.on svg{animation:pop .35s var(--spring)}
+.shoe{font-family:var(--disp);font-weight:400;font-size:21px;letter-spacing:-.01em}
+.sep{height:0;background:none;margin:12px 0 0}
+.sec{margin-top:26px}
+
+/* 코트 상세 */
+.sum{background:var(--court);color:var(--paint);border-radius:24px;margin-top:6px}
+.sum .area{color:rgba(255,255,255,.8)}
+.sum .tag{background:#fff}
+.bigrow b{font-size:84px;line-height:.85;letter-spacing:-.02em;color:#fff!important}
+.bigrow span{color:rgba(255,255,255,.75)}
+.sum .seg i{background:rgba(255,255,255,.18)}
+.sum .seg i.f{background:#fff}
+.fresh{color:rgba(255,255,255,.82)}
+.sum .tag.acc{background:rgba(255,255,255,.16);color:#fff}
+.btn{background:var(--ball);border-radius:14px;transition:transform .12s,background .2s}
+.btn.dark{background:var(--ink)}
+.btn.line{background:var(--sheet);border:1.5px solid var(--rule)}
+.links a,.links span{background:var(--sheet);border:1.5px solid var(--rule)}
+.kv,.rank,.guide{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:0 16px;margin-left:16px;margin-right:16px}
+.guide{padding:0}.guide div+div{border-top:1px solid var(--rule)}
+.kv dt:nth-last-child(2),.kv dd:last-child,.rk:last-child{border-bottom:0}
+.chart{background:var(--sheet);border:1px solid var(--rule);border-radius:16px;padding:16px 14px 10px;height:130px}
+.chart i{background:var(--s2);transform-origin:bottom;animation:grow .6s var(--ease) both}
+.chart i.on{background:var(--ball)}
+.dates{background:rgba(238,241,236,.94)}
+.dt.on{background:var(--ink)}
+.dt.on span,.dt.on b{color:var(--paper)}
+.fab{background:var(--ink);color:#fff;box-shadow:0 8px 20px rgba(27,36,32,.28)}
+.fab:active{transform:scale(.96)}
+.nav>div{background:rgba(255,255,255,.95);border-top:1px solid var(--rule);box-shadow:none}
+.nav button{transition:color .15s}
+.nav button.on{color:var(--ink)}
+.nav button.on svg{color:var(--ball);animation:pop .35s var(--spring)}
+.sheet{border-radius:24px 24px 0 0}
+.in:focus{border-color:var(--ink)}
+.opts button.on{background:var(--accent-soft);border-color:var(--ball);color:var(--ball-ink)}
+.toast{border-radius:14px;background:var(--ink);animation:toast .35s var(--spring)}
+
+/* 화면 전환·체크인 축하 */
+#view.enter{animation:enter .28s var(--ease)}
+.ballfx{position:fixed;z-index:95;width:34px;height:34px;margin:-17px 0 0 -17px;pointer-events:none;animation:bounce .9s cubic-bezier(.3,0,.7,1) forwards}
+.ballfx svg{width:100%;height:100%;animation:spin .9s linear}
+@keyframes drop{from{transform:translateY(-26px) scale(.4);opacity:0}}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(127,240,168,0)}100%{box-shadow:0 0 0 0 rgba(127,240,168,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pop{40%{transform:scale(1.3)}}
+@keyframes grow{from{transform:scaleY(0)}}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}}
+@keyframes toast{from{opacity:0;transform:translate(-50%,12px) scale(.96)}}
+@keyframes bounce{0%{transform:translateY(-120px);opacity:0}15%{opacity:1}40%{transform:translateY(0)}58%{transform:translateY(-46px)}74%{transform:translateY(0)}86%{transform:translateY(-14px)}100%{transform:translateY(0);opacity:0}}
+.still .pl,.still .chart i{animation:none}
+:focus-visible{outline:2.5px solid var(--ball);outline-offset:2px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -379,12 +446,45 @@ function nickSheet(then) {
   });
 }
 const withNick = fn => nickname ? fn() : nickSheet(fn);
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(root) {
+  if (calm) return;
+  root.querySelectorAll('[data-count]').forEach(el => {
+    const to = +el.dataset.count, small = el.querySelector('small'), t0 = performance.now();
+    const step = t => { const k = Math.min(1, (t - t0) / 650), v = Math.round(to * (1 - Math.pow(1 - k, 3)));
+      el.firstChild.nodeValue = v; if (k < 1) requestAnimationFrame(step); };
+    if (el.firstChild && el.firstChild.nodeType === 3) requestAnimationFrame(step);
+  });
+}
+function bounceBall(from) {
+  try { navigator.vibrate && navigator.vibrate([18, 40, 18]); } catch (e) {}
+  if (calm || !from) return;
+  const r = from.getBoundingClientRect(), b = document.createElement('div');
+  b.className = 'ballfx'; b.style.left = (r.left + r.width / 2) + 'px'; b.style.top = (r.top - 8) + 'px';
+  b.innerHTML = '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="#f26b1d"/><path d="M16 1v30M1 16h30M5.5 5.5c4.6 4.2 4.6 16.8 0 21M26.5 5.5c-4.6 4.2-4.6 16.8 0 21" fill="none" stroke="#7a2f08" stroke-width="1.6"/></svg>';
+  document.body.append(b); setTimeout(() => b.remove(), 1000);
+}
 async function act(fn, okMsg) { try { await fn(); okMsg && toast(okMsg); await render(); } catch (e) { toast(e.message); } }
 
 /* ---------- 조각 ---------- */
 function status(c) {
   const known = c.checked_in > 0 || c.reported !== null;
   return known ? {key: c.key, label: c.label, hint: c.hint, known} : {key: 'unk', label: '정보 없음', hint: '첫 제보를 남겨 주세요', known};
+}
+// 코트 한 면을 위에서 본 그림. 사람 수만큼 점을 찍는다(위치는 코트 id 로 고정된 난수).
+function courtSVG(c, st, mine) {
+  const n = st.known ? Math.min(c.people, 24) : 0;
+  let seed = [...c.id].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+  const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const dots = Array.from({length: n}, (_, i) => {
+    const x = 22 + rnd() * 256, y = 16 + rnd() * 118;
+    return `<circle class="pl ${mine && i === n - 1 ? 'me' : ''}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" style="--d:${120 + i * 45}ms"/>`;
+  }).join('');
+  return `<svg class="court" viewBox="0 0 300 150" role="img" aria-label="${st.known ? `코트에 ${c.people}명` : '아직 제보 없음'}">
+    <rect class="floor" x="6" y="6" width="288" height="138" rx="6"/>
+    <g class="ln"><rect x="12" y="12" width="276" height="126" rx="2"/><path d="M150 12v126"/><circle cx="150" cy="75" r="17"/>
+    <rect x="12" y="52" width="46" height="46"/><rect x="242" y="52" width="46" height="46"/><circle cx="58" cy="75" r="12"/><circle cx="242" cy="75" r="12"/>
+    <path d="M12 24h20a51 51 0 010 102H12M288 24h-20a51 51 0 000 102h20"/></g>${dots}</svg>`;
 }
 const seg = (c, st, lg) => `<div class="seg ${st.key} ${lg ? 'lg' : ''}" aria-label="현재 ${c.people}명">${Array.from({length: 10}, (_, i) => `<i class="${i < Math.min(c.people, 10) ? 'f' : ''}"></i>`).join('')}</div>`;
 function freshness(c) {
@@ -394,11 +494,12 @@ function freshness(c) {
   return p.join('  ·  ') || '아직 제보가 없어요';
 }
 function courtRow(c) {
-  const st = status(c);
+  const st = status(c), info = st.known ? [c.checked_in ? `체크인 ${c.checked_in}명` : '', c.reported !== null ? `제보 ${ago(c.report_ago)}` : ''].filter(Boolean) : ['아직 제보 없음'];
   return `<button class="crow" data-go="c/${c.id}">
-    <div class="r1"><div class="cn">${esc(c.name)}</div><span class="cnum ${st.key}">${st.known ? c.people + '명' : ''}</span><span class="tag ${st.key}">${st.label}</span></div>
-    <div class="cm">${esc(c.district || c.area)} · ${st.known ? freshness(c) : '아직 제보 없음'}${c.open_posts ? ` · <em>모집 ${c.open_posts}</em>` : ''}</div>
-    ${seg(c, st)}</button>`;
+    <span class="num ${st.key}">${st.known ? c.people : '–'}<small>${st.known ? '명' : ''}</small></span>
+    <span class="nm">${esc(c.name)}</span><span class="tag ${st.key}">${st.label}</span>
+    <span class="sub"><span>${esc(c.district || c.area)}</span>${info.map(x => `<span>${x}</span>`).join('')}${c.open_posts ? `<em>게임 ${c.open_posts}개 모집 중</em>` : ''}</span>
+    <span class="dots ${st.key}" aria-hidden="true">${Array.from({length: 10}, (_, i) => `<i class="${i < Math.min(c.people, 10) ? 'f' : ''}"></i>`).join('')}</span></button>`;
 }
 
 function gstate(p) {
@@ -471,7 +572,7 @@ const meBtn = () => `<button class="ib me" id="mb">${nickname ? esc(nickname.sli
 const bindMe = () => { const m = $('#mb'); if (m) m.onclick = () => nickSheet(); };
 
 /* ---------- 홈 ---------- */
-let courts = [], filter = '전체', query = '';
+let courts = [], filter = '전체', query = '', fresh = true;   // fresh: 화면에 처음 들어왔을 때만 효과를 보여 준다
 async function loadCourts() { courts = await api('api/courts'); return courts; }
 const norm = t => String(t || '').replace(/\s+/g, '').toLowerCase();
 const regions = () => ['전체', ...[...new Set(courts.map(c => c.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ko')), '모집중'];
@@ -486,18 +587,19 @@ function homeList() {
 }
 async function homeView() {
   topbar({right: `<button class="ib" id="rf" aria-label="새로고침">${I.refresh}</button>${meBtn()}`});
-  $('#rf').onclick = () => render().then(() => toast('새로고침했어요')); bindMe(); fab(null);
+  $('#rf').onclick = () => { const r = $('#rf'); r.classList.add('spin'); render().then(() => toast('새로고침했어요')); }; bindMe(); fab(null);
   if (!courts.length) view.innerHTML = '<div class="list">' + '<div class="skel"></div>'.repeat(5) + '</div>';
   await loadCourts();
   const known = courts.filter(c => status(c).known), best = [...known].sort((a, b) => a.people - b.people)[0], games = courts.reduce((s, c) => s + c.open_posts, 0);
   const totalNow = known.reduce((s, c) => s + c.people, 0);
   const focused = document.activeElement && document.activeElement.id === 'q';
   view.innerHTML = `
-    <section class="hero" ${best ? `data-go="c/${best.id}" role="button" tabindex="0"` : ''}>
-      <small>${best ? '지금 가장 한산한 코트' : '오늘 첫 제보를 기다리고 있어요'}</small>
-      ${best ? `<strong>${esc(best.name)}</strong><div class="hrow"><span class="tag ${status(best).key}">${status(best).label}</span><b class="n">${best.people}명</b><span>${esc(best.district || best.area)}</span></div>`
-             : `<strong>코트에 도착하면<br>체크인해 주세요</strong><div class="hrow"><span>떠날 때는 체크아웃!</span></div>`}
-      <div class="stats"><div><b class="n">${known.length}</b><span>제보 있는 코트</span></div><div><b class="n">${totalNow}</b><span>지금 뛰는 사람</span></div><div><b class="n">${games}</b><span>모집 중 게임</span></div></div>
+    <section class="hero ${best ? '' : 'empty-court'}" ${best ? `data-go="c/${best.id}" role="button" tabindex="0"` : ''}>
+      <div class="live"><i></i>${best ? '지금 제일 한산한 코트' : '아직 오늘 제보가 없어요'}</div>
+      <h2>${best ? esc(best.name) : '코트에 도착하면 체크인해 주세요'}</h2>
+      ${best ? courtSVG(best, status(best), false) : courtSVG({id: 'empty', people: 0}, {known: false}, false)}
+      ${best ? `<div class="row"><span class="big" data-count="${best.people}">${best.people}<small>명</small></span><span class="tag ${status(best).key}">${status(best).label}</span><span class="where">${esc(best.district || best.area)}</span></div>` : ''}
+      <p class="says">${known.length ? `지금 <b class="n">${known.length}</b>곳에서 <b class="n">${totalNow}</b>명이 뛰고 있어요.` : '먼저 온 사람이 체크인하면 다른 사람도 볼 수 있어요.'}${games ? ` 모집 중인 게임은 <b class="n">${games}</b>개예요.` : ''}</p>
     </section>
     <label class="search">${I.search}<input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="코트 이름이나 지역 (예: 마포구)" value="${esc(query)}"><button type="button" id="qx" aria-label="지우기" ${query ? '' : 'hidden'}>${I.x}</button></label>
     <div class="chips">${regions().map(f => `<button class="chip ${f === filter ? 'on' : ''}" data-f="${esc(f)}">${f === '전체' ? '전체' : f === '모집중' ? '🏀 모집 중' : `${I.pin}${esc(f)}`}</button>`).join('')}</div>
@@ -510,7 +612,7 @@ async function homeView() {
   qx.onclick = () => { query = ''; q.value = ''; qx.hidden = true; homeList(); q.focus(); };
   if (focused) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
   view.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; view.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b)); homeList(); });
-  homeList(); bindGo(); nav('', games);
+  homeList(); bindGo(); nav('', games); if (fresh) countUp(view);
 }
 
 /* ---------- 코트 상세 ---------- */
@@ -534,8 +636,8 @@ async function courtView(id) {
   const q = encodeURIComponent(c.map_query), facts = [['위치', c.address], ['골대', c.hoops], ['바닥', c.surface], ['조명', c.lights], ['메모', c.note]].filter(x => x[1]);
   view.innerHTML = `
     <div class="sum"><div class="top1"><span class="area">${esc(c.district || c.area)} · 현재 인원</span><span class="tag ${st.key}">${st.label}</span></div>
-      <div class="bigrow"><b class="n ${st.key}">${st.known ? c.people : '–'}</b><span>명</span></div>
-      ${seg(c, st, true)}<div class="fresh">${st.hint} · ${freshness(c)}</div>
+      <div class="bigrow"><b class="n ${st.key}" ${st.known ? `data-count="${c.people}"` : ''}>${st.known ? c.people : '–'}</b><span>명</span></div>
+      ${courtSVG(c, st, here)}<div class="fresh">${st.hint}. ${freshness(c)}</div>
       ${c.conditions.length ? `<div class="tg">${c.conditions.map(x => `<span class="tag acc">${esc(x.label)} · ${ago(x.ago)}</span>`).join('')}</div>` : ''}</div>
     <div class="pad" style="margin-top:12px"><button class="btn ${here ? 'dark' : ''}" id="ci">${here ? '체크아웃 · 떠나요' : '체크인 · 도착했어요'}</button>
       <div class="duo"><button class="btn line sm" id="rp">인원 제보</button><button class="btn line sm" id="sh2">링크 공유</button></div></div>
@@ -557,11 +659,11 @@ async function courtView(id) {
     <dl class="kv">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
     <div class="links"><a href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener noreferrer">네이버 지도</a><a href="https://map.kakao.com/link/search/${q}" target="_blank" rel="noopener noreferrer">카카오맵</a>${c.phone ? `<a href="tel:${esc(c.phone)}">전화 문의</a>` : `<span style="opacity:.35">전화 없음</span>`}</div>
     <p class="notes">이용료·예약·사용 제한은 방문 전에 지도 앱이나 관리 주체에 확인해 주세요. 비어 있는 항목은 아직 확인되지 않은 정보입니다.</p>`;
-  $('#ci').onclick = () => withNick(() => act(() => api(`api/courts/${id}/${here ? 'checkout' : 'checkin'}`, 'POST', {nickname}), here ? '체크아웃했어요' : '체크인했어요. 즐거운 경기 되세요'));
+  $('#ci').onclick = () => withNick(() => act(async () => { await api(`api/courts/${id}/${here ? 'checkout' : 'checkin'}`, 'POST', {nickname}); if (!here) bounceBall($('#ci')); }, here ? '체크아웃했어요' : '체크인했어요. 즐거운 경기 되세요'));
   $('#sh2').onclick = shareFn; $('#rp').onclick = () => reportSheet(id, c);
   $('#np').onclick = () => withNick(() => gameSheet(id)); $('#nf').onclick = () => withNick(() => fitSheet(id));
   view.querySelectorAll('[data-cond]').forEach(b => b.onclick = () => act(() => api(`api/courts/${id}/condition`, 'POST', {tag: b.dataset.cond}), '알려 주셔서 고마워요'));
-  bindGames(); bindFits(); bindGo(); fab(null); nav('', 0);
+  bindGames(); bindFits(); bindGo(); fab(null); nav('', 0); if (fresh) countUp(view);
 }
 
 /* ---------- 시트: 제보 / 게임 / 착장 ---------- */
@@ -720,6 +822,7 @@ let busy = false;
 async function render() {
   if (busy) return; busy = true;
   const y = scrollY, h = location.hash.replace(/^#\/?/, '');
+  view.classList.toggle('still', !fresh);
   try {
     if (h.startsWith('c/')) await courtView(h.slice(2));
     else if (h === 'games') await gamesView();
@@ -729,9 +832,9 @@ async function render() {
     scrollTo(0, y);
   } catch (e) {
     view.innerHTML = `<div class="empty"><b>불러오지 못했어요</b>${esc(e.message)}<br><br><button class="btn line sm" style="width:auto;display:inline-flex;padding:0 22px" onclick="render()">다시 시도</button></div>`;
-  } finally { busy = false; }
+  } finally { busy = false; fresh = false; }
 }
-addEventListener('hashchange', () => { closeSheet(); scrollTo(0, 0); render(); });
+addEventListener('hashchange', () => { closeSheet(); scrollTo(0, 0); fresh = true; view.classList.remove('enter'); render().then(() => { void view.offsetWidth; if (!calm) view.classList.add('enter'); }); });
 setInterval(() => { if (!sheetOpen && !document.hidden) render(); }, 25000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !sheetOpen) render(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
