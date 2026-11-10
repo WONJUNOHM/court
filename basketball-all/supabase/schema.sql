@@ -498,6 +498,25 @@ begin
   return '{"ok":true}';
 end $$;
 
+-- 닉네임 완전 삭제: 그 닉네임이 올린 글·사진·기록·닉네임 자체를 모두 지운다 (정지 기록은 우회 방지를 위해 남김)
+create or replace function api_admin_erase_user(pw text, nickname text) returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw); n text := btrim(coalesce(nickname, '')); photos jsonb;
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if n = '' then return jsonb_build_object('error', '닉네임이 비어 있어요'); end if;
+  select coalesce(jsonb_agg(_photo_name(f.photo)) filter (where _photo_name(f.photo) is not null), '[]') into photos from fits f where f.nickname = n;
+  insert into photo_trash(name) select _photo_name(f.photo) from fits f where f.nickname = n and _photo_name(f.photo) is not null on conflict do nothing;
+  delete from fits where fits.nickname = n;                    -- 좋아요·신고 기록도 함께 지워짐
+  delete from fit_likes where fit_likes.nickname = n;
+  delete from posts where posts.nickname = n;                  -- 참가 기록도 함께 지워짐
+  delete from post_joins where post_joins.nickname = n;
+  delete from checkins where checkins.nickname = n;
+  delete from court_suggestions where court_suggestions.nickname = n;
+  delete from nicks where nicks.nickname = n;
+  return jsonb_build_object('ok', true, 'photos', photos);
+end $$;
+
 create or replace function api_admin_unban(pw text, nickname text) returns jsonb language plpgsql security definer set search_path = public as $$
 declare e text := _admin(pw);
 begin

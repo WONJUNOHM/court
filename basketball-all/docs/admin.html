@@ -320,10 +320,16 @@ async function loadUsers() {
       <div class="acts">
         <button class="b" data-a="fits">착장 보기</button>
         ${u.banned ? '<button class="b ok" data-a="unban">정지 해제</button>' : '<button class="b bad" data-a="ban">정지</button>'}
+        <button class="b bad" data-a="erase">완전 삭제</button>
       </div>`;
     r.querySelector('[data-a=fits]').onclick = () => { S.tab = 'all'; S.q = u.nickname; render(); };
     r.querySelector('[data-a=ban]')?.addEventListener('click', run(() => ban(u.nickname), '정지했어요'));
     r.querySelector('[data-a=unban]')?.addEventListener('click', run(() => rpc('api_admin_unban', {nickname: u.nickname}), '정지를 풀었어요'));
+    r.querySelector('[data-a=erase]').onclick = run(async () => {
+      if (!(await ask(`'${u.nickname}' 닉네임을 완전히 삭제할까요?\n이 닉네임이 올린 착장(사진 포함), 모집글, 체크인, 코트 제보와 닉네임이 모두 지워지고 되돌릴 수 없어요.\n(정지 기록은 우회를 막기 위해 남아요)`))) return false;
+      const r2 = await rpc('api_admin_erase_user', {nickname: u.nickname});
+      for (const p of (r2.photos || [])) await removePhoto(p);
+    }, '완전히 삭제했어요');
     box.append(r);
   }
 }
