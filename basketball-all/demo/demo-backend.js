@@ -91,6 +91,11 @@
       if (path === 'api/me/fits') return fits(f => f.nick === (q.nickname || '').trim());
     } else {
       if (path === 'api/nick') return {ok: true, nickname: V.nick(body.nickname)};
+      if (path === 'api/suggest') {   // 체험판: 검증만 하고 저장하지 않는다
+        V.nick(body.nickname);
+        if ((body.name || '').trim().length < 2 || !(body.district || '').trim()) throw new HttpError(400, '코트 이름과 지역을 입력해 주세요');
+        return {ok: true};
+      }
       if ((m = path.match(/^api\/courts\/([^/]+)\/(checkin|checkout|report|condition|posts)$/))) {
         const c = V.court(m[1]), act = m[2];
         if (act === 'checkin') { const n = V.nick(body.nickname); S.checkins.forEach(x => { if (x.nick === n && !x.out) x.out = true; }); S.checkins.push({court: c.id, nick: n, t: nowMs(), out: false}); }

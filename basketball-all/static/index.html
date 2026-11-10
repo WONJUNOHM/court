@@ -375,6 +375,12 @@ html,body,.app{background:var(--paper)}
 .still .pl,.still .chart i{animation:none}
 :focus-visible{outline:2.5px solid var(--ball);outline-offset:2px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* 코트 제보 */
+.suggest{display:block;width:calc(100% - 32px);margin:18px 16px 0;padding:16px;border-radius:14px;border:1.5px dashed var(--s2);text-align:center;color:var(--sub);font-size:14px;line-height:1.5;transition:background .15s,border-color .15s}
+.suggest b{display:block;color:var(--ink);font-size:15px;margin-top:2px}
+.suggest:active{background:var(--s1)}
+.empty .btn{margin-top:16px;width:auto;display:inline-flex;padding:0 22px}
 </style>
 </head>
 <body>
@@ -608,7 +614,8 @@ function homeList() {
   list.sort((a, b) => (status(a).known === status(b).known ? a.people - b.people : status(a).known ? -1 : 1) || a.name.localeCompare(b.name, 'ko'));
   const box = $('#cl'); if (!box) return;
   $('#cnt').textContent = list.length;
-  box.innerHTML = list.map(courtRow).join('') || `<div class="empty"><b>${query ? `"${esc(query)}" 검색 결과가 없어요` : '해당하는 코트가 없어요'}</b>코트 이름이나 자치구(예: 마포구, 광진구)로 찾아보세요</div>`;
+  box.innerHTML = list.map(courtRow).join('') || `<div class="empty"><b>${query ? `"${esc(query)}" 검색 결과가 없어요` : '해당하는 코트가 없어요'}</b>코트 이름이나 자치구(예: 마포구, 광진구)로 찾아보세요<br><button class="btn line sm" data-sg>코트 제보하기</button></div>`;
+  box.querySelectorAll('[data-sg]').forEach(b => b.onclick = () => withNick(suggestSheet));
   box.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.go; });
 }
 async function homeView() {
@@ -631,6 +638,7 @@ async function homeView() {
     <div class="chips">${regions().map(f => `<button class="chip ${f === filter ? 'on' : ''}" data-f="${esc(f)}">${f === '전체' ? '전체' : f === '모집중' ? '🏀 모집 중' : `${I.pin}${esc(f)}`}</button>`).join('')}</div>
     <div class="lhead"><span>코트 <b id="cnt" class="n">0</b>곳</span><span>한산한 순</span></div>
     <div class="list" id="cl"></div>
+    <button class="suggest" id="sg0">찾는 농구장이 없나요?<b>코트 제보하기</b></button>
     <p class="notes">혼잡도는 체크인(3시간 뒤 자동 해제)과 최근 30분 제보 중 큰 값이에요. 이용자가 많아질수록 정확해져요.</p>`;
   const q = $('#q'), qx = $('#qx');
   q.oninput = () => { query = q.value; qx.hidden = !query; homeList(); };
@@ -638,6 +646,7 @@ async function homeView() {
   qx.onclick = () => { query = ''; q.value = ''; qx.hidden = true; homeList(); q.focus(); };
   if (focused) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
   view.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; view.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b)); homeList(); });
+  $('#sg0').onclick = () => withNick(suggestSheet);
   homeList(); bindGo(); nav('', games); if (fresh) countUp(view);
 }
 
@@ -676,7 +685,7 @@ async function courtView(id) {
     <div class="sep"></div>
     ${sec('이 코트의 착장', fits.length)}
     ${c.top_shoes.length ? `<div class="rank">${c.top_shoes.map((s, i) => `<div class="rk"><span class="no n">${i + 1}</span><b>${esc(s.shoes)}</b><span>${s.n}명${s.grip ? ` · 접지 ${s.grip}` : ''}</span></div>`).join('')}</div>` : `<p class="hint">아직 올라온 착장이 없어요. 오늘 신고 오신 신발을 남겨 주세요.</p>`}
-    ${fits.slice(0, 3).map(f => fitCard(f, false)).join('')}
+    <div class="cards">${fits.slice(0, 3).map(f => fitCard(f, false)).join('')}</div>
     <div class="pad" style="margin-top:14px"><button class="btn line sm" id="nf">착장 올리기</button></div>
     <div class="sep"></div>
     ${sec('시간대별 혼잡도')}${chart(c.hourly)}
@@ -863,6 +872,30 @@ async function render() {
 addEventListener('hashchange', () => { closeSheet(); scrollTo(0, 0); fresh = true; view.classList.remove('enter'); render().then(() => { void view.offsetWidth; if (!calm) view.classList.add('enter'); }); });
 setInterval(() => { if (!sheetOpen && !document.hidden) render(); }, 25000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !sheetOpen) render(); });
+
+/* ---------- 코트 제보 ---------- */
+function suggestSheet() {
+  openSheet(`<h4>코트 제보하기</h4><div class="sub">목록에 없는 농구장을 알려 주세요. 운영자가 확인한 뒤 목록에 올라가요.</div>
+    <label class="field"><span>코트 이름 *</span><input class="in" id="sn" maxlength="30" placeholder="예) 광교호수공원 농구장"></label>
+    <div class="two"><label class="field"><span>지역 *</span><input class="in" id="sd" maxlength="12" placeholder="예) 수원시, 마포구"></label>
+    <label class="field"><span>바닥</span><select class="in" id="ss"><option value="">모름</option><option>고무</option><option>우레탄</option><option>아스팔트</option><option>마루</option><option>기타</option></select></label></div>
+    <label class="field"><span>주소·찾아가는 방법 *</span><input class="in" id="sa" maxlength="60" placeholder="예) 광교호수로 57 옆 주차장 뒤"></label>
+    <div class="two"><label class="field"><span>골대 수</span><input class="in" id="sh" maxlength="30" placeholder="예) 골대 4개"></label>
+    <label class="field"><span>메모</span><input class="in" id="so" maxlength="80" placeholder="조명·화장실 등"></label></div>
+    <p class="hint" style="margin:14px 0 0">직접 확인한 정보만 적어 주세요. 다른 사이트나 블로그의 글·사진은 옮기지 말고, 전화번호 같은 개인정보는 쓰지 마세요.</p>
+    <div style="height:18px"></div><button class="btn" id="sg">제보하기</button>`, s => {
+    s.querySelector('#sn').focus();
+    s.querySelector('#sg').onclick = () => {
+      const v = id => s.querySelector('#' + id).value.trim();
+      if (v('sn').length < 2) return toast('코트 이름을 입력해 주세요');
+      if (!v('sd')) return toast('지역을 입력해 주세요 (예: 마포구)');
+      if (!v('sa')) return toast('주소나 찾아가는 방법을 적어 주세요');
+      api('api/suggest', 'POST', {nickname, name: v('sn'), district: v('sd'), address: v('sa'), hoops: v('sh'), surface: v('ss'), note: v('so')})
+        .then(() => { closeSheet(); toast('제보했어요. 확인 후 올라가요'); }).catch(e => toast(e.message));
+    };
+  });
+}
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 render();
 </script>

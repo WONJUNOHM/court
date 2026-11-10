@@ -65,6 +65,10 @@ h2{font-size:15px;margin:22px 0 8px}
 .viewer{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}
 .viewer img{max-width:96vw;max-height:92vh}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;padding:11px 18px;border-radius:14px;font-weight:600;font-size:14px;max-width:90vw;text-align:center}
+.edit{flex-direction:column;align-items:stretch;gap:8px}
+.edit .f2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.edit .field{width:100%;padding:9px 11px;font-size:14px}
+.lnk{color:var(--accent);font-weight:700;font-size:13px;text-decoration:none}
 @media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr 1fr;gap:8px}.cb{padding:8px 10px 10px}.b{font-size:12.5px;padding:8px 6px}.row{flex-direction:column;align-items:stretch}}
 </style>
 </head>
@@ -129,7 +133,7 @@ function loginView(msg = '') {
 }
 
 // ---------- 화면 뼈대 ----------
-const TABS = [['reported', '신고'], ['pending', '검토대기'], ['hidden', '숨김'], ['all', '착장 전체'], ['posts', '모집글'], ['users', '닉네임'], ['settings', '설정']];
+const TABS = [['reported', '신고'], ['pending', '검토대기'], ['hidden', '숨김'], ['all', '착장 전체'], ['courts', '코트'], ['posts', '모집글'], ['users', '닉네임'], ['settings', '설정']];
 function shell() {
   $app.innerHTML = `
     <header class="top"><div class="wrap">
@@ -153,7 +157,9 @@ async function render() {
       .map(([k, n]) => `<div class="stat"><b>${n}</b><span>${k}</span></div>`).join('');
     document.getElementById('c-reported').innerHTML = o.reported ? `<span class="cnt">${o.reported}</span>` : '';
     document.getElementById('c-pending').innerHTML = o.pending ? `<span class="cnt">${o.pending}</span>` : '';
-    if (S.tab === 'posts') await postsView(v);
+    document.getElementById('c-courts').innerHTML = o.suggestions ? `<span class="cnt">${o.suggestions}</span>` : '';
+    if (S.tab === 'courts') await courtsView(v);
+    else if (S.tab === 'posts') await postsView(v);
     else if (S.tab === 'users') await usersView(v);
     else if (S.tab === 'settings') settingsView(v, o);
     else await fitsView(v);
@@ -221,6 +227,40 @@ async function ban(nickname) {
   if (reason === null) return false;
   const wipe = confirm('이 닉네임이 올린 착장은 모두 숨기고, 모집글은 지울까요?');
   await rpc('api_admin_ban', {nickname, reason, wipe});
+}
+
+// ---------- 코트 (이용자 제보 승인 · 제보로 생긴 코트 관리) ----------
+async function courtsView(v) {
+  const [sg, cs] = await Promise.all([rpc('api_admin_suggestions'), rpc('api_admin_courts')]);
+  v.innerHTML = `<h2 style="margin-top:4px">확인할 제보 <span class="meta">${sg.length}건</span></h2><div id="sg"></div>
+    <h2>이용자 제보로 만든 코트</h2><div id="uc"></div>
+    <p class="meta" style="margin-top:16px">기본 코트(한강공원 등)를 고치려면 supabase/schema.sql 의 코트 목록을 수정한 뒤 SQL Editor 에서 다시 실행하세요.</p>`;
+  const sbox = document.getElementById('sg');
+  if (!sg.length) sbox.innerHTML = '<p class="empty" style="padding:24px 0">들어온 제보가 없어요</p>';
+  for (const x of sg) {
+    const r = document.createElement('div'); r.className = 'row edit';
+    const f = (id, label, val, max) => `<input class="field" data-k="${id}" maxlength="${max}" placeholder="${label}" aria-label="${label}" value="${esc(val)}">`;
+    r.innerHTML = `
+      <div class="meta">${esc(x.nickname)} · ${ago(x.ago)}</div>
+      ${f('name', '코트 이름', x.name, 30)}
+      <div class="f2">${f('district', '지역', x.district, 12)}${f('surface', '바닥', x.surface, 10)}</div>
+      ${f('address', '주소·찾아가는 방법', x.address, 60)}
+      <div class="f2">${f('hoops', '골대 수', x.hoops, 30)}${f('note', '메모', x.note, 80)}</div>
+      <a class="lnk" target="_blank" rel="noopener" href="https://map.naver.com/p/search/${encodeURIComponent((x.name + ' ' + x.address).trim())}">네이버 지도에서 확인 ↗</a>
+      <div class="acts"><button class="b ok" data-a="ok">승인해서 목록에 올리기</button><button class="b bad" data-a="no">거절</button></div>`;
+    const val = () => Object.fromEntries([...r.querySelectorAll('[data-k]')].map(i => [i.dataset.k, i.value.trim()]));
+    r.querySelector('[data-a=ok]').onclick = run(() => rpc('api_admin_suggestion', {sid: x.id, act: 'approve', ...val()}), '코트를 올렸어요');
+    r.querySelector('[data-a=no]').onclick = run(() => confirm('이 제보를 거절(삭제)할까요?') ? rpc('api_admin_suggestion', {sid: x.id, act: 'reject'}) : false, '거절했어요');
+    sbox.append(r);
+  }
+  const ubox = document.getElementById('uc'), mine = cs.filter(c => c.user_added);
+  if (!mine.length) ubox.innerHTML = '<p class="empty" style="padding:24px 0">아직 없어요</p>';
+  for (const c of mine) {
+    const r = document.createElement('div'); r.className = 'row';
+    r.innerHTML = `<div class="who"><b>${esc(c.name)}</b><div class="meta">${esc(c.district)}</div></div><div class="acts"><button class="b bad">삭제</button></div>`;
+    r.querySelector('button').onclick = run(() => confirm(`'${c.name}'을 지울까요? 이 코트의 체크인·제보·모집글도 함께 지워져요.`) ? rpc('api_admin_court', {cid: c.id, act: 'delete'}) : false, '지웠어요');
+    ubox.append(r);
+  }
 }
 
 // ---------- 모집글 ----------
