@@ -281,7 +281,7 @@ function nickSheet(then) {
     <label class="field"><span>닉네임 (최대 20자)</span><input class="in" id="ni" maxlength="20" value="${esc(nickname)}" placeholder="예) 슛돌이" autocomplete="off"></label>
     <div style="height:18px"></div><button class="btn" id="ns">저장</button>`, s => {
     const go = () => { const v = s.querySelector('#ni').value.trim(); if (!v) return toast('닉네임을 입력해 주십시오'); setNick(v); closeSheet(); render(); then && then(); };
-    s.querySelector('#ns').onclick = go; s.querySelector('#ni').onkeydown = e => e.key === 'Enter' && go(); s.querySelector('#ni').focus();
+    s.querySelector('#ns').onclick = go; s.querySelector('#ni').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); go(); } }; s.querySelector('#ni').focus();
   });
 }
 const withNick = fn => nickname ? fn() : nickSheet(fn);
