@@ -26,6 +26,15 @@ create table if not exists fits(id bigserial primary key, court_id text default 
 create table if not exists fit_likes(fit_id bigint references fits on delete cascade, nickname text, primary key(fit_id, nickname));
 create table if not exists fit_reports(fit_id bigint references fits on delete cascade, reporter text, primary key(fit_id, reporter));
 create table if not exists hits(k text, t timestamptz default now());
+-- 착장 공개 상태: visible(공개) · pending(관리자 확인 대기) · hidden(관리자가 숨김)
+alter table fits add column if not exists status text not null default 'visible';
+-- 관리자용: 설정 · 관리자 비밀번호 · 이용 정지 · 지울 사진 목록
+create table if not exists settings(id int primary key default 1 check (id = 1),
+  require_approval boolean not null default false, hide_at int not null default 3);
+insert into settings(id) values (1) on conflict (id) do nothing;
+create table if not exists admin_keys(id int primary key default 1 check (id = 1), pw_hash text not null);
+create table if not exists bans(nickname text primary key, key_hash text default '', reason text default '', created timestamptz default now());
+create table if not exists photo_trash(name text primary key, created timestamptz default now());
 create index if not exists checkins_court on checkins(court_id, created);
 create index if not exists reports_court on reports(court_id, created);
 create index if not exists conditions_court on conditions(court_id, created);
@@ -33,7 +42,8 @@ create index if not exists posts_play on posts(play_at);
 create index if not exists hits_k on hits(k, t);
 
 do $$ declare t text; begin
-  foreach t in array array['courts','nicks','checkins','reports','conditions','posts','post_joins','fits','fit_likes','fit_reports','hits'] loop
+  foreach t in array array['courts','nicks','checkins','reports','conditions','posts','post_joins','fits','fit_likes','fit_reports','hits',
+                           'settings','admin_keys','bans','photo_trash'] loop
     execute format('alter table %I enable row level security', t);
     execute format('revoke all on %I from anon, authenticated', t);
   end loop;
@@ -88,8 +98,14 @@ begin
   if cur is null then insert into nicks(nickname, key_hash) values (s, h) on conflict do nothing;
     select key_hash into cur from nicks where nickname = s; end if;
   if cur <> h then perform _err('다른 기기에서 이미 쓰는 닉네임이에요. 다른 닉네임을 정해 주세요'); end if;
+  if exists (select 1 from bans where bans.nickname = s or (bans.key_hash <> '' and bans.key_hash = h)) then
+    perform _err('이용이 제한된 닉네임이에요'); end if;
   return s;
 end $$;
+
+-- 신고가 이만큼 쌓이면 착장이 자동으로 숨겨진다 (관리자 페이지에서 바꿈)
+create or replace function _hide_at() returns int language sql stable security definer set search_path = public as $$
+  select coalesce((select hide_at from settings where id = 1), 3) $$;
 
 create or replace function _court(cid text) returns void language plpgsql security definer set search_path = public as $$
 begin if not exists (select 1 from courts where id = cid) then perform _err('없는 코트예요'); end if; end $$;
@@ -140,7 +156,7 @@ create or replace function _fits(cid text, who text) returns jsonb language sql 
       'court_name', coalesce((select name from courts where id = f.court_id), ''), 'ago', _ago(f.created),
       'likes', (select count(*) from fit_likes l where l.fit_id = f.id),
       'liked_by', coalesce((select jsonb_agg(nickname) from fit_likes l where l.fit_id = f.id), '[]')) j
-    from fits f where f.reports < 3 and (cid is null or f.court_id = cid) and (who is null or f.nickname = who)
+    from fits f where f.status = 'visible' and f.reports < _hide_at() and (cid is null or f.court_id = cid) and (who is null or f.nickname = who)
     order by f.id desc limit 50) x $$;
 
 -- ---------- 읽기 API ----------
@@ -171,7 +187,7 @@ begin
     'hourly', jsonb_build_object('samples', samples, 'hours', hours),
     'top_shoes', coalesce((select jsonb_agg(jsonb_build_object('shoes', s.shoes, 'n', s.n, 'grip', s.grip) order by s.n desc, s.last desc) from (
         select (array_agg(shoes order by id desc))[1] shoes, count(*) n, round(avg(nullif(grip, 0))::numeric, 1) grip, max(id) last
-        from fits where court_id = cid and reports < 3 group by lower(btrim(shoes)) order by n desc, last desc limit 3) s), '[]'));
+        from fits where court_id = cid and status = 'visible' and reports < _hide_at() group by lower(btrim(shoes)) order by n desc, last desc limit 3) s), '[]'));
 end $$;
 
 create or replace function api_posts() returns jsonb language sql stable security definer set search_path = public as $$ select _posts(null, null) $$;
@@ -262,6 +278,7 @@ create or replace function api_new_fit(nickname text, key text, court_id text, s
   bottom text default '', extra text default '', comment text default '', grip int default 0, photo text default '')
   returns jsonb language plpgsql security definer set search_path = public as $$
 declare n text := _owner(nickname, key); s text := btrim(coalesce(shoes, '')); ph text := coalesce(photo, '');
+  st text := case when (select require_approval from settings where id = 1) then 'pending' else 'visible' end;
 begin
   if s = '' or char_length(s) > 50 then perform _err('신발 이름을 1~50자로 입력해 주세요'); end if;
   if grip is null or grip < 0 or grip > 5 then perform _err('접지력은 1~5점이에요'); end if;
@@ -269,10 +286,10 @@ begin
   -- 사진은 앱이 Storage(fits 버킷)에 먼저 올리고 그 공개 주소만 넘긴다
   if ph <> '' and ph !~ '^https://[a-z0-9]+\.supabase\.co/storage/v1/object/public/fits/[0-9a-f-]{36}\.jpg$' then
     perform _err('사진을 다시 올려 주세요'); end if;
-  insert into fits(court_id, nickname, shoes, shoe_size, top, bottom, extra, comment, grip, photo)
+  insert into fits(court_id, nickname, shoes, shoe_size, top, bottom, extra, comment, grip, photo, status)
   values (coalesce(court_id, ''), n, left(s, 50), left(btrim(coalesce(shoe_size, '')), 12), left(btrim(coalesce(top, '')), 40),
-    left(btrim(coalesce(bottom, '')), 40), left(btrim(coalesce(extra, '')), 60), left(btrim(coalesce(comment, '')), 120), grip, ph);
-  return '{"ok":true}';
+    left(btrim(coalesce(bottom, '')), 40), left(btrim(coalesce(extra, '')), 60), left(btrim(coalesce(comment, '')), 120), grip, ph, st);
+  return jsonb_build_object('ok', true, 'pending', st = 'pending');
 end $$;
 
 create or replace function api_fit_action(fid bigint, act text, nickname text, key text) returns jsonb language plpgsql security definer set search_path = public as $$
@@ -294,6 +311,169 @@ begin
   return '{"ok":true}';
 end $$;
 
+-- ---------- 관리자 (admin.html 에서 호출, 모두 관리자 비밀번호 확인) ----------
+-- 처음 한 번, SQL Editor 에서:  select _admin_set_password('나만 아는 긴 비밀번호');
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
+
+create or replace function _admin_set_password(new_pw text) returns text language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if char_length(coalesce(new_pw, '')) < 8 then perform _err('비밀번호는 8자 이상으로 정해 주세요'); end if;
+  insert into admin_keys(id, pw_hash) values (1, crypt(new_pw, gen_salt('bf')))
+  on conflict (id) do update set pw_hash = excluded.pw_hash;
+  return '관리자 비밀번호를 설정했어요';
+end $$;
+
+-- 맞으면 null, 틀리면 오류 문구. 틀린 기록이 남아야 하므로 예외 대신 문구를 돌려준다(10분에 10번 틀리면 잠금).
+create or replace function _admin(pw text) returns text language plpgsql security definer set search_path = public, extensions as $$
+declare h text;
+begin
+  if (select count(*) from hits where k = 'admin-fail' and t > now() - interval '10 minutes') >= 10 then
+    return '비밀번호를 여러 번 틀렸어요. 10분 뒤 다시 시도해 주세요'; end if;
+  select pw_hash into h from admin_keys where id = 1;
+  if h is null then return '관리자 비밀번호가 아직 설정되지 않았어요 (SQL Editor 에서 설정)'; end if;
+  if crypt(coalesce(pw, ''), h) <> h then insert into hits(k) values ('admin-fail'); return '비밀번호가 맞지 않아요'; end if;
+  return null;
+end $$;
+
+create or replace function _photo_name(url text) returns text language sql immutable as $$
+  select substring(coalesce(url, '') from '/fits/([0-9a-f-]{36}\.jpg)$') $$;
+
+create or replace function api_admin_overview(pw text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw); s settings;
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  select * into s from settings where id = 1;
+  return jsonb_build_object(
+    'reported', (select count(*) from fits where reports > 0 and status <> 'hidden'),
+    'pending',  (select count(*) from fits where status = 'pending'),
+    'hidden',   (select count(*) from fits where status = 'hidden' or reports >= s.hide_at),
+    'fits',     (select count(*) from fits),
+    'posts',    (select count(*) from _open_posts()),
+    'users',    (select count(*) from nicks),
+    'banned',   (select count(*) from bans),
+    'require_approval', s.require_approval, 'hide_at', s.hide_at);
+end $$;
+
+create or replace function api_admin_fits(pw text, tab text default 'reported', q text default '') returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw); lim int := _hide_at(); qq text := '%' || btrim(coalesce(q, '')) || '%';
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  return coalesce((select jsonb_agg(x.j order by x.ord1 desc, x.id desc) from (
+    select f.id, case when tab = 'reported' then f.reports else 0 end ord1,
+      jsonb_build_object('id', f.id, 'nickname', f.nickname, 'shoes', f.shoes, 'shoe_size', f.shoe_size, 'top', f.top, 'bottom', f.bottom,
+        'extra', f.extra, 'comment', f.comment, 'photo', f.photo, 'status', f.status, 'reports', f.reports, 'auto_hidden', f.reports >= lim,
+        'court_name', coalesce((select name from courts where id = f.court_id), ''), 'ago', _ago(f.created),
+        'banned', exists (select 1 from bans b where b.nickname = f.nickname)) j
+    from fits f
+    where case tab when 'reported' then f.reports > 0 and f.status <> 'hidden'
+                      when 'pending'  then f.status = 'pending'
+                      when 'hidden'   then f.status = 'hidden' or f.reports >= lim
+                      else true end
+      and (btrim(coalesce(q, '')) = '' or f.nickname ilike qq or f.shoes ilike qq or f.comment ilike qq)
+    order by ord1 desc, f.id desc limit 200) x), '[]');
+end $$;
+
+create or replace function api_admin_fit(pw text, fid bigint, act text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw); ph text;
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if act = 'show' then          -- 공개 (신고 기록도 비움)
+    update fits set status = 'visible', reports = 0 where id = fid; delete from fit_reports where fit_id = fid;
+  elsif act = 'hide' then update fits set status = 'hidden' where id = fid;
+  elsif act = 'delete' then     -- 글 삭제 + 사진을 지울 수 있게 표시 (실제 파일은 관리자 페이지가 바로 지움)
+    select _photo_name(photo) into ph from fits where id = fid;
+    if ph is not null then insert into photo_trash(name) values (ph) on conflict do nothing; end if;
+    delete from fits where id = fid;
+    return jsonb_build_object('ok', true, 'photo', ph);
+  else return jsonb_build_object('error', '알 수 없는 요청이에요'); end if;
+  return '{"ok":true}';
+end $$;
+
+create or replace function api_admin_posts(pw text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  return coalesce((select jsonb_agg(_post_json(p) || jsonb_build_object('ended', p.play_at <= _kst() - interval '3 hours') order by p.play_at desc)
+    from (select * from posts order by play_at desc limit 200) p), '[]');
+end $$;
+
+create or replace function api_admin_post(pw text, pid bigint, act text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if act = 'delete' then delete from posts where id = pid; else return jsonb_build_object('error', '알 수 없는 요청이에요'); end if;
+  return '{"ok":true}';
+end $$;
+
+create or replace function api_admin_users(pw text, q text default '', tab text default 'all') returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw); qq text := '%' || btrim(coalesce(q, '')) || '%';
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  return coalesce((select jsonb_agg(x.j order by x.rep desc, x.created desc) from (
+    select n.created, coalesce((select sum(reports) from fits where nickname = n.nickname), 0) rep,
+      jsonb_build_object('nickname', n.nickname, 'ago', _ago(n.created),
+        'fits', (select count(*) from fits where nickname = n.nickname),
+        'posts', (select count(*) from posts where nickname = n.nickname),
+        'reports', coalesce((select sum(reports) from fits where nickname = n.nickname), 0),
+        'banned', b.nickname is not null, 'ban_reason', b.reason) j
+    from nicks n left join bans b on b.nickname = n.nickname
+    where (btrim(coalesce(q, '')) = '' or n.nickname ilike qq)
+      and (tab <> 'banned' or b.nickname is not null)
+    order by rep desc, n.created desc limit 300) x), '[]');
+end $$;
+
+create or replace function api_admin_ban(pw text, nickname text, reason text default '', wipe boolean default false) returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw); n text := btrim(coalesce(nickname, ''));
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if n = '' then return jsonb_build_object('error', '닉네임이 비어 있어요'); end if;
+  insert into bans(nickname, key_hash, reason)
+  values (n, coalesce((select key_hash from nicks where nicks.nickname = n), ''), left(btrim(coalesce(reason, '')), 100))
+  on conflict on constraint bans_pkey do update set reason = excluded.reason, key_hash = excluded.key_hash;
+  if wipe then   -- 올린 착장은 숨기고, 모집글은 지운다
+    update fits set status = 'hidden' where fits.nickname = n;
+    delete from posts where posts.nickname = n;
+  end if;
+  return '{"ok":true}';
+end $$;
+
+create or replace function api_admin_unban(pw text, nickname text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  delete from bans where bans.nickname = btrim(coalesce(api_admin_unban.nickname, ''));
+  return '{"ok":true}';
+end $$;
+
+create or replace function api_admin_settings(pw text, require_approval boolean, hide_at int) returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if hide_at is null or hide_at < 1 or hide_at > 50 then return jsonb_build_object('error', '자동 숨김 신고 수는 1~50 사이예요'); end if;
+  update settings set require_approval = coalesce(api_admin_settings.require_approval, false), hide_at = api_admin_settings.hide_at where id = 1;
+  return '{"ok":true}';
+end $$;
+
+create or replace function api_admin_password(pw text, new_pw text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if char_length(coalesce(new_pw, '')) < 8 then return jsonb_build_object('error', '새 비밀번호는 8자 이상이에요'); end if;
+  perform _admin_set_password(new_pw);
+  return '{"ok":true}';
+end $$;
+
+-- 관리자가 지운 착장의 사진 파일만 Storage 에서 지울 수 있게 확인해 주는 함수 (아래 정책에서 사용)
+create or replace function fits_trashed(n text) returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from photo_trash where name = n) $$;
+revoke all on function fits_trashed(text) from public;
+grant execute on function fits_trashed(text) to anon, authenticated;
+
 -- ---------- 권한: anon 은 api_* 만 실행 ----------
 do $$ declare f record; begin
   for f in select p.oid::regprocedure sig, p.proname from pg_proc p join pg_namespace s on s.oid = p.pronamespace
@@ -303,7 +483,8 @@ do $$ declare f record; begin
   end loop;
 end $$;
 
--- ---------- 사진 저장소: 공개 읽기, JPEG 600KB 이하만 업로드, 수정·삭제 불가 ----------
+-- ---------- 사진 저장소: 공개 읽기, JPEG 600KB 이하만 업로드, 수정 불가 ----------
+-- 삭제는 관리자가 지운 착장의 사진(photo_trash 에 있는 것)만 가능
 do $$ begin
   if exists (select 1 from pg_namespace where nspname = 'storage') then
     insert into storage.buckets(id, name, public, file_size_limit, allowed_mime_types)
@@ -312,5 +493,11 @@ do $$ begin
     drop policy if exists "fits upload" on storage.objects;
     create policy "fits upload" on storage.objects for insert to anon, authenticated
       with check (bucket_id = 'fits' and name ~ '^[0-9a-f-]{36}\.jpg$');
+    drop policy if exists "fits trash select" on storage.objects;
+    drop policy if exists "fits trash delete" on storage.objects;
+    create policy "fits trash select" on storage.objects for select to anon, authenticated
+      using (bucket_id = 'fits' and public.fits_trashed(name));
+    create policy "fits trash delete" on storage.objects for delete to anon, authenticated
+      using (bucket_id = 'fits' and public.fits_trashed(name));
   end if;
 end $$;

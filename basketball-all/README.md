@@ -26,3 +26,12 @@ FastAPI + SQLite + 바닐라 JS (빌드 과정 없음).
 - `static/`을 고친 뒤 `python3 demo/build.py`로 `docs/`를 다시 만들고 푸시하면 자동 배포됩니다.
   브라우저에만 저장되는 체험판이 필요하면 `python3 demo/build.py --demo 출력폴더`.
 - `main.py`(FastAPI + SQLite)는 내 컴퓨터에서 개발·테스트할 때 쓰는 서버입니다.
+
+## 관리자 페이지 (착장 검열)
+주소: https://hangangcourt.vercel.app/admin.html (Supabase 서비스판에만 있음)
+
+- 처음 한 번: `schema.sql`을 SQL Editor 에서 다시 Run 한 뒤, 같은 곳에서
+  `select _admin_set_password('나만 아는 긴 비밀번호');` 실행. 이후 비밀번호 변경은 관리자 페이지 설정 탭에서.
+- 신고 · 검토대기 · 숨김 · 착장 전체: 착장 공개/숨김/삭제(사진 파일까지), 작성자 정지
+- 모집글: 삭제, 작성자 정지 / 닉네임: 검색, 정지·해제 / 설정: 승인제, 자동 숨김 신고 수, 비밀번호
+- 정지된 닉네임(과 그 기기)은 글쓰기·체크인·모집·좋아요를 못 합니다. 비밀번호를 10분에 10번 틀리면 10분 동안 잠깁니다.

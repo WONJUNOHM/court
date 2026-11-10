@@ -28,4 +28,8 @@ else:
 i = h.index('<script>')
 h = h[:i] + '<script>\n' + backend + '\n</script>\n' + h[i:]
 open(os.path.join(out, 'index.html'), 'w', encoding='utf-8').write(h)
+if not demo:   # 관리자 페이지 (주소/admin.html) — 실제 서비스판에만
+    a = open(os.path.join(root, 'static', 'admin.html'), encoding='utf-8').read() \
+        .replace('__SUPABASE_URL__', SUPABASE_URL).replace('__SUPABASE_KEY__', SUPABASE_KEY)
+    open(os.path.join(out, 'admin.html'), 'w', encoding='utf-8').write(a)
 print('built', 'demo' if demo else 'supabase', out)

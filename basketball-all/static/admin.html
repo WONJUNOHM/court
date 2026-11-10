@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<title>코트 한눈에 관리자</title>
+<style>
+:root{
+  --bg:#fff;--s1:#f5f6f8;--s2:#eceef2;--line:#eceef1;--ink:#17191d;--sub:#6f7782;--faint:#aab0b9;
+  --accent:#e8470c;--accent-soft:#fff1eb;--ok:#0f9d58;--ok-soft:#e6f6ee;--warn:#d97706;--warn-soft:#fff4de;--bad:#dc2626;--bad-soft:#fdeaea;
+  --sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--s1);color:var(--ink);font:15px/1.5 var(--sans);letter-spacing:-.015em;word-break:keep-all;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,select{font:inherit;color:inherit}
+.wrap{max-width:900px;margin:0 auto}
+.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 0}
+.bar1{display:flex;align-items:center;gap:8px}
+.brand{font-weight:800;font-size:18px;letter-spacing:-.04em;flex:1;display:flex;align-items:center;gap:7px}
+.brand i{width:18px;height:18px;border-radius:50%;background:var(--accent);display:inline-block}
+.brand small{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 7px;border-radius:6px}
+.tabs{display:flex;gap:2px;overflow-x:auto;margin:8px -16px 0;padding:0 12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 10px 11px;font-weight:700;color:var(--sub);border-bottom:2px solid transparent;white-space:nowrap;font-size:14.5px}
+.tab.on{color:var(--ink);border-color:var(--accent)}
+.cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:3px;border-radius:9px;background:var(--bad);color:#fff;font-size:11.5px;line-height:18px;text-align:center}
+main{padding:14px 16px calc(40px + env(safe-area-inset-bottom))}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.stat span{color:var(--sub);font-size:12px}
+.tools{display:flex;gap:8px;margin-bottom:12px}
+.tools input,.tools select,.field{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:var(--bg);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.ph{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--s2);cursor:zoom-in}
+.noph{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:var(--s2);color:var(--faint);font-size:13px}
+.cb{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.cb b{font-size:15px}
+.meta{color:var(--sub);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:7px;background:var(--s2);color:var(--sub)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:8px}
+.b{flex:1 1 auto;padding:9px 10px;border-radius:10px;background:var(--s1);border:1px solid var(--line);font-weight:700;font-size:13.5px;text-align:center}
+.b.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.b.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.b.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.b:disabled{opacity:.5}
+.row{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.row .who{flex:1;min-width:0}
+.row .acts{margin:0;padding:0;flex:0 0 auto}
+.empty{text-align:center;color:var(--sub);padding:48px 0}
+.login{max-width:360px;margin:14vh auto 0;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.login h1{margin:0 0 4px;font-size:20px}
+.err{color:var(--bad);font-size:14px;min-height:1.2em;margin:0}
+.set{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center}
+.set div{flex:1}.set p{margin:2px 0 0;color:var(--sub);font-size:13px}
+.sw{width:46px;height:28px;accent-color:var(--accent)}
+h2{font-size:15px;margin:22px 0 8px}
+.viewer{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}
+.viewer img{max-width:96vw;max-height:92vh}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--ink);color:#fff;padding:11px 18px;border-radius:14px;font-weight:600;font-size:14px;max-width:90vw;text-align:center}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr 1fr;gap:8px}.cb{padding:8px 10px 10px}.b{font-size:12.5px;padding:8px 6px}.row{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// 관리자 페이지: 모든 요청은 Supabase 의 api_admin_* 함수로 가고, 함수가 관리자 비밀번호를 확인한다.
+const URL_ = '__SUPABASE_URL__', KEY = '__SUPABASE_KEY__';
+const H = {apikey: KEY, 'Content-Type': 'application/json'};
+const $app = document.getElementById('app');
+const S = {tab: 'reported', q: '', userQ: '', userTab: 'all', pw: ''};
+try { S.pw = sessionStorage.getItem('adminPw') || ''; } catch (e) {}
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ago = m => m == null ? '' : m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`;
+function toast(m) { document.querySelectorAll('.toast').forEach(t => t.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.append(t); setTimeout(() => t.remove(), 2200); }
+
+async function rpc(fn, args = {}) {
+  let r;
+  try { r = await fetch(`${URL_}/rest/v1/rpc/${fn}`, {method: 'POST', headers: H, body: JSON.stringify({pw: S.pw, ...args})}); }
+  catch (e) { throw new Error('서버에 연결할 수 없어요'); }
+  const d = await r.json().catch(() => null);
+  if (!r.ok) throw new Error((d && d.message) || '요청에 실패했어요');
+  if (d && !Array.isArray(d) && d.error) {
+    if (/비밀번호|잠금|여러 번/.test(d.error)) { logout(d.error); throw new Error(d.error); }
+    throw new Error(d.error);
+  }
+  return d;
+}
+
+// 관리자가 지운 착장의 사진 파일 삭제 (DB 가 허락한 파일만 지워진다)
+async function removePhoto(name) {
+  if (!name) return;
+  try {
+    await fetch(`${URL_}/storage/v1/object/fits`, {method: 'DELETE', headers: {apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({prefixes: [name]})});
+  } catch (e) {}
+}
+
+// ---------- 로그인 ----------
+function logout(msg = '') {
+  S.pw = ''; try { sessionStorage.removeItem('adminPw'); } catch (e) {}
+  loginView(msg);
+}
+function loginView(msg = '') {
+  $app.innerHTML = `
+    <form class="login" id="lf">
+      <div class="brand"><i></i>코트 한눈에 <small>관리자</small></div>
+      <p class="meta">관리자 비밀번호를 입력하세요.</p>
+      <input class="field" id="pw" type="password" autocomplete="current-password" placeholder="비밀번호">
+      <button class="b pri" type="submit">들어가기</button>
+      <p class="err" id="le">${esc(msg)}</p>
+    </form>`;
+  const pw = document.getElementById('pw'); pw.focus();
+  document.getElementById('lf').onsubmit = async e => {
+    e.preventDefault();
+    S.pw = pw.value;
+    try { await rpc('api_admin_overview'); } catch (err) { document.getElementById('le').textContent = err.message; return; }
+    try { sessionStorage.setItem('adminPw', S.pw); } catch (e) {}
+    shell();
+  };
+}
+
+// ---------- 화면 뼈대 ----------
+const TABS = [['reported', '신고'], ['pending', '검토대기'], ['hidden', '숨김'], ['all', '착장 전체'], ['posts', '모집글'], ['users', '닉네임'], ['settings', '설정']];
+function shell() {
+  $app.innerHTML = `
+    <header class="top"><div class="wrap">
+      <div class="bar1"><div class="brand"><i></i>코트 한눈에 <small>관리자</small></div>
+        <a class="b" href="./" style="flex:0;text-decoration:none;color:inherit">앱</a><button class="b" id="out" style="flex:0">나가기</button></div>
+      <nav class="tabs">${TABS.map(([k, l]) => `<button class="tab" data-t="${k}">${l}<span id="c-${k}"></span></button>`).join('')}</nav>
+    </div></header>
+    <main class="wrap"><div class="stats" id="stats"></div><div id="view"></div></main>`;
+  document.getElementById('out').onclick = () => logout();
+  document.querySelectorAll('.tab').forEach(b => b.onclick = () => { S.tab = b.dataset.t; S.q = ''; render(); });
+  render();
+}
+
+async function render() {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === S.tab));
+  const v = document.getElementById('view');
+  v.innerHTML = '<p class="empty">불러오는 중…</p>';
+  try {
+    const o = await rpc('api_admin_overview');
+    document.getElementById('stats').innerHTML = [['미처리 신고', o.reported], ['검토대기', o.pending], ['숨김 착장', o.hidden], ['정지 닉네임', o.banned]]
+      .map(([k, n]) => `<div class="stat"><b>${n}</b><span>${k}</span></div>`).join('');
+    document.getElementById('c-reported').innerHTML = o.reported ? `<span class="cnt">${o.reported}</span>` : '';
+    document.getElementById('c-pending').innerHTML = o.pending ? `<span class="cnt">${o.pending}</span>` : '';
+    if (S.tab === 'posts') await postsView(v);
+    else if (S.tab === 'users') await usersView(v);
+    else if (S.tab === 'settings') settingsView(v, o);
+    else await fitsView(v);
+  } catch (e) { if (S.pw) { v.innerHTML = `<p class="empty">${esc(e.message)}</p>`; } }
+}
+
+function run(fn, msg) {
+  return async ev => {
+    const btn = ev && ev.currentTarget; if (btn) btn.disabled = true;
+    try { const r = await fn(); if (r !== false) { toast(msg); await render(); } }
+    catch (e) { toast(e.message); }
+    finally { if (btn) btn.disabled = false; }
+  };
+}
+function viewer(src) { const d = document.createElement('div'); d.className = 'viewer'; d.innerHTML = `<img src="${esc(src)}" alt="">`; d.onclick = () => d.remove(); document.body.append(d); }
+
+// ---------- 착장 (신고 / 검토대기 / 숨김 / 전체) ----------
+const ST = {visible: ['공개', 'ok'], pending: ['검토대기', 'warn'], hidden: ['숨김', 'bad']};
+async function fitsView(v) {
+  v.innerHTML = `<div class="tools"><input id="q" placeholder="닉네임·신발·글 내용 검색" value="${esc(S.q)}"></div><div id="list"></div>`;
+  let t; document.getElementById('q').oninput = e => { clearTimeout(t); t = setTimeout(() => { S.q = e.target.value; loadFits(); }, 300); };
+  await loadFits();
+}
+async function loadFits() {
+  const box = document.getElementById('list');
+  const fits = await rpc('api_admin_fits', {tab: S.tab, q: S.q});
+  const emptyMsg = {reported: '처리할 신고가 없어요', pending: '검토할 착장이 없어요', hidden: '숨긴 착장이 없어요', all: '착장이 없어요'}[S.tab];
+  if (!fits.length) return box.innerHTML = `<p class="empty">${emptyMsg}</p>`;
+  box.innerHTML = '<div class="grid"></div>';
+  const g = box.firstChild;
+  for (const f of fits) {
+    const [sl, sc] = f.auto_hidden && f.status === 'visible' ? ['신고로 자동 숨김', 'bad'] : ST[f.status] || [f.status, ''];
+    const wear = [f.top, f.bottom, f.extra].filter(Boolean).join(' · ');
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = `
+      ${f.photo ? `<img class="ph" src="${esc(f.photo)}" loading="lazy" alt="">` : '<div class="noph">사진 없음</div>'}
+      <div class="cb">
+        <div class="tags"><span class="tag ${sc}">${sl}</span>${f.reports ? `<span class="tag bad">신고 ${f.reports}</span>` : ''}${f.banned ? '<span class="tag bad">정지된 닉네임</span>' : ''}</div>
+        <b>${esc(f.shoes)}${f.shoe_size ? ` <span class="meta">${esc(f.shoe_size)}</span>` : ''}</b>
+        ${wear ? `<div class="meta">${esc(wear)}</div>` : ''}
+        ${f.comment ? `<div>${esc(f.comment)}</div>` : ''}
+        <div class="meta">${esc(f.nickname)} · ${f.court_name ? esc(f.court_name) + ' · ' : ''}${ago(f.ago)}</div>
+        <div class="acts">
+          ${f.status !== 'visible' || f.reports ? `<button class="b ok" data-a="show">${f.status === 'pending' ? '승인' : f.reports ? '문제없음' : '공개'}</button>` : ''}
+          ${f.status !== 'hidden' ? '<button class="b" data-a="hide">숨기기</button>' : ''}
+          <button class="b bad" data-a="del">삭제</button>
+          ${f.banned ? '' : '<button class="b" data-a="ban">작성자 정지</button>'}
+        </div>
+      </div>`;
+    c.querySelector('.ph')?.addEventListener('click', () => viewer(f.photo));
+    c.querySelector('[data-a=show]')?.addEventListener('click', run(() => rpc('api_admin_fit', {fid: f.id, act: 'show'}), '공개했어요 (신고 기록 초기화)'));
+    c.querySelector('[data-a=hide]')?.addEventListener('click', run(() => rpc('api_admin_fit', {fid: f.id, act: 'hide'}), '숨겼어요'));
+    c.querySelector('[data-a=del]').addEventListener('click', run(async () => {
+      if (!confirm('이 착장 글과 사진을 완전히 지울까요? 되돌릴 수 없어요.')) return false;
+      const r = await rpc('api_admin_fit', {fid: f.id, act: 'delete'});
+      await removePhoto(r.photo);
+    }, '삭제했어요'));
+    c.querySelector('[data-a=ban]')?.addEventListener('click', run(() => ban(f.nickname), '정지했어요'));
+    g.append(c);
+  }
+}
+
+async function ban(nickname) {
+  const reason = prompt(`'${nickname}' 닉네임을 정지할까요?\n정지되면 글쓰기·체크인·모집을 못 해요. 사유를 적어 주세요.`, '부적절한 사진');
+  if (reason === null) return false;
+  const wipe = confirm('이 닉네임이 올린 착장은 모두 숨기고, 모집글은 지울까요?');
+  await rpc('api_admin_ban', {nickname, reason, wipe});
+}
+
+// ---------- 모집글 ----------
+async function postsView(v) {
+  const posts = await rpc('api_admin_posts');
+  if (!posts.length) return v.innerHTML = '<p class="empty">모집글이 없어요</p>';
+  v.innerHTML = '';
+  for (const p of posts) {
+    const r = document.createElement('div'); r.className = 'row';
+    r.innerHTML = `
+      <div class="who">
+        <div class="tags">${p.ended ? '<span class="tag">끝남</span>' : '<span class="tag ok">진행 중</span>'}<span class="tag">${esc(p.fmt)}</span><span class="tag">${esc(p.level)}</span><span class="tag">${p.joined.length}/${p.capacity}명</span></div>
+        <b>${esc(p.title)}</b>
+        <div class="meta">${esc(p.court_name)} · ${esc(p.play_at)} · ${esc(p.nickname)}${p.link ? ` · <a href="${esc(p.link)}" target="_blank" rel="noopener" style="color:var(--accent)">링크</a>` : ''}</div>
+      </div>
+      <div class="acts"><button class="b bad" data-a="del">삭제</button><button class="b" data-a="ban">작성자 정지</button></div>`;
+    r.querySelector('[data-a=del]').onclick = run(() => confirm('이 모집글을 지울까요?') ? rpc('api_admin_post', {pid: p.id, act: 'delete'}) : false, '지웠어요');
+    r.querySelector('[data-a=ban]').onclick = run(() => ban(p.nickname), '정지했어요');
+    v.append(r);
+  }
+}
+
+// ---------- 닉네임 ----------
+async function usersView(v) {
+  v.innerHTML = `<div class="tools"><input id="uq" placeholder="닉네임 검색" value="${esc(S.userQ)}">
+    <select id="ut" style="flex:0 0 120px"><option value="all">전체</option><option value="banned">정지만</option></select></div><div id="ul"></div>`;
+  document.getElementById('ut').value = S.userTab;
+  let t; document.getElementById('uq').oninput = e => { clearTimeout(t); t = setTimeout(() => { S.userQ = e.target.value; loadUsers(); }, 300); };
+  document.getElementById('ut').onchange = e => { S.userTab = e.target.value; loadUsers(); };
+  await loadUsers();
+}
+async function loadUsers() {
+  const box = document.getElementById('ul');
+  const users = await rpc('api_admin_users', {q: S.userQ, tab: S.userTab});
+  if (!users.length) return box.innerHTML = '<p class="empty">닉네임이 없어요</p>';
+  box.innerHTML = '';
+  for (const u of users) {
+    const r = document.createElement('div'); r.className = 'row';
+    r.innerHTML = `
+      <div class="who">
+        <b>${esc(u.nickname)}</b> ${u.banned ? '<span class="tag bad">정지</span>' : ''}
+        <div class="meta">착장 ${u.fits} · 모집글 ${u.posts} · 받은 신고 ${u.reports} · 처음 쓴 지 ${ago(u.ago)}${u.ban_reason ? ' · 사유: ' + esc(u.ban_reason) : ''}</div>
+      </div>
+      <div class="acts">
+        <button class="b" data-a="fits">착장 보기</button>
+        ${u.banned ? '<button class="b ok" data-a="unban">정지 해제</button>' : '<button class="b bad" data-a="ban">정지</button>'}
+      </div>`;
+    r.querySelector('[data-a=fits]').onclick = () => { S.tab = 'all'; S.q = u.nickname; render(); };
+    r.querySelector('[data-a=ban]')?.addEventListener('click', run(() => ban(u.nickname), '정지했어요'));
+    r.querySelector('[data-a=unban]')?.addEventListener('click', run(() => rpc('api_admin_unban', {nickname: u.nickname}), '정지를 풀었어요'));
+    box.append(r);
+  }
+}
+
+// ---------- 설정 ----------
+function settingsView(v, o) {
+  v.innerHTML = `
+    <div class="set"><div><b>승인제</b><p>켜면 새 착장은 내가 승인해야 공개돼요. 올린 사람에겐 "관리자 확인 후 공개" 안내가 떠요.</p></div>
+      <input type="checkbox" class="sw" id="ra" ${o.require_approval ? 'checked' : ''}></div>
+    <div class="set"><div><b>자동 숨김 신고 수</b><p>서로 다른 기기에서 이만큼 신고되면 착장이 바로 숨겨져요.</p></div>
+      <input type="number" class="field" id="ha" min="1" max="50" value="${o.hide_at}" style="flex:0 0 80px"></div>
+    <button class="b pri" id="sv" style="width:100%">설정 저장</button>
+    <h2>관리자 비밀번호 바꾸기</h2>
+    <div class="tools"><input type="password" id="np" placeholder="새 비밀번호 (8자 이상)" autocomplete="new-password"><button class="b" id="cp" style="flex:0 0 auto">바꾸기</button></div>
+    <h2>현황</h2>
+    <p class="meta">착장 ${o.fits}개 · 진행 중 모집글 ${o.posts}개 · 닉네임 ${o.users}개</p>
+    <p class="meta">코트 정보는 supabase/schema.sql 의 코트 목록을 고친 뒤 SQL Editor 에서 다시 실행하면 바뀌어요.</p>`;
+  document.getElementById('sv').onclick = run(() => rpc('api_admin_settings', {require_approval: document.getElementById('ra').checked, hide_at: parseInt(document.getElementById('ha').value, 10) || 3}), '저장했어요');
+  document.getElementById('cp').onclick = run(async () => {
+    const np = document.getElementById('np').value;
+    if (np.length < 8) { toast('8자 이상으로 정해 주세요'); return false; }
+    await rpc('api_admin_password', {new_pw: np});
+    S.pw = np; try { sessionStorage.setItem('adminPw', np); } catch (e) {}
+  }, '비밀번호를 바꿨어요');
+}
+
+S.pw ? shell() : loginView();
+</script>
+</body>
+</html>
