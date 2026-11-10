@@ -190,7 +190,7 @@ a{color:inherit;text-decoration:none}
 
 /* 시트 */
 .veil{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;animation:fade .16s}
-.sheet{background:var(--bg);width:100%;max-width:480px;padding:10px 16px calc(20px + env(safe-area-inset-bottom));max-height:92dvh;overflow:auto;border-radius:22px 22px 0 0;animation:up .2s ease-out}
+.sheet{background:var(--bg);width:100%;max-width:480px;padding:10px 16px calc(20px + env(safe-area-inset-bottom));max-height:92%;overflow:auto;border-radius:22px 22px 0 0;animation:up .2s ease-out}
 .sheet:before{content:"";display:block;width:38px;height:4px;border-radius:2px;background:var(--s2);margin:0 auto 14px}
 .sheet h4{margin:0;font-size:21px;letter-spacing:-.045em;font-weight:800}
 .sheet .sub{color:var(--sub);font-size:13.5px;margin-top:3px}
@@ -456,8 +456,18 @@ function openSheet(html, bind) {
   const v = document.createElement('div'); v.className = 'veil'; v.id = 'veil';
   v.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
   v.addEventListener('mousedown', e => { if (e.target === v) closeSheet(); });
-  document.body.append(v); sheetOpen = true; bind && bind(v.firstChild);
+  document.body.append(v); sheetOpen = true; fitVeil(); bind && bind(v.firstChild);
 }
+/* 키보드가 올라오면 시트를 키보드 위(보이는 영역)에 맞춘다 */
+function fitVeil() {
+  const v = $('#veil'), vv = window.visualViewport;
+  if (!v || !vv) return;
+  v.style.inset = 'auto'; v.style.left = '0'; v.style.width = '100%';
+  v.style.top = vv.offsetTop + 'px'; v.style.height = vv.height + 'px';
+  const a = document.activeElement;
+  if (a && v.contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) setTimeout(() => a.scrollIntoView({ block: 'center' }), 50);
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', fitVeil); visualViewport.addEventListener('scroll', fitVeil); }
 function closeSheet() { const v = $('#veil'); if (v) v.remove(); sheetOpen = false; }
 addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
 // 버튼 묶음(단일 선택)
