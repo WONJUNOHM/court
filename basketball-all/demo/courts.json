@@ -10,7 +10,9 @@
   "phone": "02-3153-9873",
   "map_query": "망원유수지체육공원 농구장",
   "note": "상시 개방 · 주차 · 화장실 · 우천·기상특보 시 사용 제한",
-  "district": "마포구"
+  "district": "마포구",
+  "lat": 37.564,
+  "lng": 126.9
  },
  {
   "id": "hg-mangwon",
@@ -23,7 +25,9 @@
   "phone": "02-3780-0601",
   "map_query": "망원한강공원 농구장",
   "note": "화장실 · 급수대",
-  "district": "마포구"
+  "district": "마포구",
+  "lat": 37.5547,
+  "lng": 126.8985
  },
  {
   "id": "hg-yanghwa",
@@ -36,7 +40,9 @@
   "phone": "",
   "map_query": "양화한강공원 농구장",
   "note": "",
-  "district": "영등포구"
+  "district": "영등포구",
+  "lat": 37.5398,
+  "lng": 126.9017
  },
  {
   "id": "hg-nanji",
@@ -49,7 +55,9 @@
   "phone": "02-3780-0611",
   "map_query": "난지한강공원 농구장",
   "note": "",
-  "district": "마포구"
+  "district": "마포구",
+  "lat": 37.5685,
+  "lng": 126.8765
  },
  {
   "id": "hg-ichon",
@@ -62,7 +70,9 @@
   "phone": "02-3780-0551",
   "map_query": "이촌한강공원 농구장",
   "note": "",
-  "district": "용산구"
+  "district": "용산구",
+  "lat": 37.518,
+  "lng": 126.959
  },
  {
   "id": "hg-banpo",
@@ -75,7 +85,9 @@
   "phone": "02-3780-0541",
   "map_query": "반포한강공원 농구장",
   "note": "바닥이 거칠어 부상 주의. 인근 반포종합운동장을 더 많이 이용",
-  "district": "서초구"
+  "district": "서초구",
+  "lat": 37.5105,
+  "lng": 126.996
  },
  {
   "id": "hg-jamwon",
@@ -88,7 +100,9 @@
   "phone": "",
   "map_query": "잠원한강공원 농구장",
   "note": "",
-  "district": "서초구"
+  "district": "서초구",
+  "lat": 37.522,
+  "lng": 127.012
  },
  {
   "id": "hg-ttukseom",
@@ -101,7 +115,9 @@
   "phone": "",
   "map_query": "뚝섬한강공원 농구장",
   "note": "뚝섬역 쪽과 먼 쪽 두 곳으로 나뉨 · 장애인 전용 농구장 별도",
-  "district": "광진구"
+  "district": "광진구",
+  "lat": 37.531,
+  "lng": 127.068
  },
  {
   "id": "hg-jamsil",
@@ -114,7 +130,9 @@
   "phone": "02-3708-0511",
   "map_query": "잠실한강공원 농구장",
   "note": "",
-  "district": "송파구"
+  "district": "송파구",
+  "lat": 37.52,
+  "lng": 127.084
  },
  {
   "id": "hg-gwangnaru",
@@ -127,6 +145,8 @@
   "phone": "02-3780-0501",
   "map_query": "광나루한강공원 농구장",
   "note": "",
-  "district": "강동구"
+  "district": "강동구",
+  "lat": 37.547,
+  "lng": 127.119
  }
 ]

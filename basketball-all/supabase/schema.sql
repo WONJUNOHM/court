@@ -8,6 +8,8 @@ create table if not exists courts(
   surface text default '', lights text default '', phone text default '', map_query text default '', note text default '',
   sort int default 0);
 alter table courts add column if not exists district text default '';
+alter table courts add column if not exists lat double precision;   -- 지도 위치 (공원 기준 대략 위치, 관리자 페이지에서 고침)
+alter table courts add column if not exists lng double precision;
 create table if not exists nicks(nickname text primary key, key_hash text not null, created timestamptz default now());
 create table if not exists checkins(id bigserial primary key, court_id text references courts on delete cascade, nickname text not null,
   created timestamptz default now(), out boolean default false);
@@ -35,6 +37,10 @@ insert into settings(id) values (1) on conflict (id) do nothing;
 create table if not exists admin_keys(id int primary key default 1 check (id = 1), pw_hash text not null);
 create table if not exists bans(nickname text primary key, key_hash text default '', reason text default '', created timestamptz default now());
 create table if not exists photo_trash(name text primary key, created timestamptz default now());
+-- 이용자가 제보한 새 코트: 관리자가 승인하면 courts 로 옮기고, 거절하면 지운다
+create table if not exists court_suggestions(id bigserial primary key, nickname text not null, name text not null, district text not null,
+  address text default '', hoops text default '', surface text default '', note text default '', lat double precision, lng double precision,
+  created timestamptz default now());
 create index if not exists checkins_court on checkins(court_id, created);
 create index if not exists reports_court on reports(court_id, created);
 create index if not exists conditions_court on conditions(court_id, created);
@@ -43,7 +49,7 @@ create index if not exists hits_k on hits(k, t);
 
 do $$ declare t text; begin
   foreach t in array array['courts','nicks','checkins','reports','conditions','posts','post_joins','fits','fit_likes','fit_reports','hits',
-                           'settings','admin_keys','bans','photo_trash'] loop
+                           'settings','admin_keys','bans','photo_trash','court_suggestions'] loop
     execute format('alter table %I enable row level security', t);
     execute format('revoke all on %I from anon, authenticated', t);
   end loop;
@@ -62,6 +68,20 @@ insert into courts(id,name,area,address,hoops,surface,lights,phone,map_query,not
  ('hg-gwangnaru','광나루한강공원 농구장','한강','광나루한강공원','','','','02-3780-0501','광나루한강공원 농구장','',10,'강동구')
 on conflict (id) do update set name=excluded.name, area=excluded.area, address=excluded.address, hoops=excluded.hoops,
   surface=excluded.surface, lights=excluded.lights, phone=excluded.phone, map_query=excluded.map_query, note=excluded.note, sort=excluded.sort, district=excluded.district;
+
+-- 좌표는 처음 한 번만 넣는다 (이미 관리자가 고친 값은 덮어쓰지 않음)
+update courts c set lat = v.lat, lng = v.lng from (values
+  ('mangwon-yusuji', 37.564, 126.9),
+  ('hg-mangwon', 37.5547, 126.8985),
+  ('hg-yanghwa', 37.5398, 126.9017),
+  ('hg-nanji', 37.5685, 126.8765),
+  ('hg-ichon', 37.518, 126.959),
+  ('hg-banpo', 37.5105, 126.996),
+  ('hg-jamwon', 37.522, 127.012),
+  ('hg-ttukseom', 37.531, 127.068),
+  ('hg-jamsil', 37.52, 127.084),
+  ('hg-gwangnaru', 37.547, 127.119)
+) v(id, lat, lng) where c.id = v.id and c.lat is null;
 
 -- ---------- 내부 도우미 (anon 에게 열지 않음) ----------
 create or replace function _kst() returns timestamp language sql stable as $$ select (now() at time zone 'Asia/Seoul') $$;
@@ -88,6 +108,7 @@ begin
     and not exists (select 1 from fits f where f.nickname = n.nickname)
     and not exists (select 1 from bans b where b.nickname = n.nickname);
   delete from photo_trash where created < now() - interval '30 days';
+  delete from court_suggestions where created < now() - interval '90 days';
 end $$;
 
 -- 쓰기 요청 제한: 기기 키당 1분에 60회
@@ -328,6 +349,26 @@ begin
   return '{"ok":true}';
 end $$;
 
+-- 새 코트 제보 (닉네임 주인 확인, 대기 3건까지, 한국 안의 좌표만)
+create or replace function api_suggest_court(nickname text, key text, name text, district text, address text default '', hoops text default '',
+  surface text default '', note text default '', lat double precision default null, lng double precision default null) returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare n text := _owner(nickname, key); nm text := btrim(coalesce(name, '')); d text := btrim(coalesce(district, ''));
+begin
+  if char_length(nm) < 2 or char_length(nm) > 30 then perform _err('코트 이름을 2~30자로 입력해 주세요'); end if;
+  if char_length(d) < 1 or char_length(d) > 12 then perform _err('지역(예: 마포구)을 입력해 주세요'); end if;
+  if (lat is null) <> (lng is null) or (lat is not null and (lat not between 33 and 39 or lng not between 124 and 132)) then
+    perform _err('지도에서 위치를 다시 골라 주세요'); end if;
+  if exists (select 1 from courts c where regexp_replace(lower(c.name), '\s', '', 'g') = regexp_replace(lower(nm), '\s', '', 'g')) then
+    perform _err('이미 등록된 코트예요'); end if;
+  if (select count(*) from court_suggestions s where s.nickname = n) >= 3 then
+    perform _err('확인 중인 제보가 3건 있어요. 처리된 뒤에 또 올려 주세요'); end if;
+  insert into court_suggestions(nickname, name, district, address, hoops, surface, note, lat, lng)
+  values (n, nm, d, left(btrim(coalesce(address, '')), 60), left(btrim(coalesce(hoops, '')), 30), left(btrim(coalesce(surface, '')), 10),
+    left(btrim(coalesce(note, '')), 80), lat, lng);
+  return '{"ok":true}';
+end $$;
+
 -- ---------- 관리자 (admin.html 에서 호출, 모두 관리자 비밀번호 확인) ----------
 -- 처음 한 번, SQL Editor 에서:  select _admin_set_password('나만 아는 긴 비밀번호');
 create schema if not exists extensions;
@@ -369,6 +410,7 @@ begin
     'posts',    (select count(*) from _open_posts()),
     'users',    (select count(*) from nicks),
     'banned',   (select count(*) from bans),
+    'suggestions', (select count(*) from court_suggestions),
     'require_approval', s.require_approval, 'hide_at', s.hide_at);
 end $$;
 
@@ -473,6 +515,58 @@ begin
   if e is not null then return jsonb_build_object('error', e); end if;
   if hide_at is null or hide_at < 1 or hide_at > 50 then return jsonb_build_object('error', '자동 숨김 신고 수는 1~50 사이예요'); end if;
   update settings set require_approval = coalesce(api_admin_settings.require_approval, false), hide_at = api_admin_settings.hide_at where id = 1;
+  return '{"ok":true}';
+end $$;
+
+create or replace function api_admin_suggestions(pw text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  return coalesce((select jsonb_agg(to_jsonb(s) || jsonb_build_object('ago', _ago(s.created)) order by s.id desc) from court_suggestions s), '[]');
+end $$;
+
+-- 승인(approve): 입력란에서 고친 값으로 courts 에 넣는다 / 거절(reject): 지운다
+create or replace function api_admin_suggestion(pw text, sid bigint, act text, name text default '', district text default '', address text default '',
+  hoops text default '', surface text default '', note text default '', lat double precision default null, lng double precision default null) returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw); nm text := btrim(coalesce(name, '')); d text := btrim(coalesce(district, ''));
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if act = 'reject' then delete from court_suggestions where id = sid; return '{"ok":true}'; end if;
+  if act <> 'approve' then return jsonb_build_object('error', '알 수 없는 요청이에요'); end if;
+  if not exists (select 1 from court_suggestions where id = sid) then return jsonb_build_object('error', '이미 처리된 제보예요'); end if;
+  if char_length(nm) < 2 or char_length(d) < 1 then return jsonb_build_object('error', '이름과 지역은 꼭 필요해요'); end if;
+  if (lat is null) <> (lng is null) or (lat is not null and (lat not between 33 and 39 or lng not between 124 and 132)) then
+    return jsonb_build_object('error', '좌표가 한국 밖이에요'); end if;
+  insert into courts(id, name, area, address, hoops, surface, map_query, note, sort, district, lat, lng)
+  values ('u' || sid, left(nm, 30), left(d, 12), left(btrim(coalesce(address, '')), 60), left(btrim(coalesce(hoops, '')), 30),
+    left(btrim(coalesce(surface, '')), 10), left(nm, 30), left(btrim(coalesce(note, '')), 80), 1000 + sid, left(d, 12), lat, lng);
+  delete from court_suggestions where id = sid;
+  return '{"ok":true}';
+end $$;
+
+create or replace function api_admin_courts(pw text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'name', c.name, 'district', c.district, 'lat', c.lat, 'lng', c.lng,
+    'user_added', c.id like 'u%' and c.id ~ '^u[0-9]+$') order by c.sort, c.id) from courts c), '[]');
+end $$;
+
+-- 코트 위치 고치기 / 이용자가 제보해 만든 코트 지우기
+create or replace function api_admin_court(pw text, cid text, act text, lat double precision default null, lng double precision default null) returns jsonb
+  language plpgsql security definer set search_path = public as $$
+declare e text := _admin(pw);
+begin
+  if e is not null then return jsonb_build_object('error', e); end if;
+  if act = 'locate' then
+    if (lat is null) <> (lng is null) or (lat is not null and (lat not between 33 and 39 or lng not between 124 and 132)) then
+      return jsonb_build_object('error', '좌표가 한국 밖이에요'); end if;
+    update courts set lat = api_admin_court.lat, lng = api_admin_court.lng where id = cid;
+  elsif act = 'delete' then
+    if cid !~ '^u[0-9]+$' then return jsonb_build_object('error', '기본 코트는 지울 수 없어요'); end if;
+    delete from courts where id = cid;
+  else return jsonb_build_object('error', '알 수 없는 요청이에요'); end if;
   return '{"ok":true}';
 end $$;
 

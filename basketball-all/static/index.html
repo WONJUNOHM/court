@@ -375,6 +375,26 @@ html,body,.app{background:var(--paper)}
 .still .pl,.still .chart i{animation:none}
 :focus-visible{outline:2.5px solid var(--ball);outline-offset:2px;border-radius:8px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* 지도 · 코트 제보 */
+.vt{display:inline-flex;background:var(--s1);border-radius:10px;padding:3px;gap:2px}
+.vt button{height:30px;padding:0 15px;border-radius:8px;font-weight:700;font-size:13px;color:var(--sub);transition:background .15s,color .15s}
+.vt button.on{background:var(--sheet);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.mapwrap{position:relative;margin:2px 16px 0}
+#map{height:min(62dvh,520px);min-height:320px;border-radius:16px;overflow:hidden;border:1.5px solid var(--rule);background:var(--s1);z-index:0}
+.mapmsg{position:absolute;inset:0;display:grid;place-items:center;color:var(--sub);font-size:14px;text-align:center;padding:24px;z-index:1;pointer-events:none}
+.mapcard{position:absolute;left:10px;right:10px;bottom:10px;z-index:2;background:var(--sheet);border:1.5px solid var(--rule);border-radius:14px;padding:12px 14px 14px;box-shadow:0 8px 24px rgba(0,0,0,.18);display:grid;gap:3px}
+.mapcard[hidden]{display:none}
+.mc-t{display:flex;align-items:center;justify-content:space-between;gap:8px}.mc-t b{font-size:17px;letter-spacing:-.03em}
+.mc-s{font-size:13px;color:var(--sub);margin-bottom:8px}
+.mk{display:grid;place-items:center;border-radius:50%;color:#fff;font-weight:800;font-size:13px;border:2.5px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.32);transition:transform .15s}
+.mk.calm{background:var(--calm)}.mk.mid{background:var(--mid)}.mk.busy{background:var(--busy)}.mk.unk{background:var(--unk)}
+.mk.sel{transform:scale(1.25);z-index:999!important}
+.mapnote{margin:8px 20px 0;font-size:12.5px;color:var(--sub)}
+.suggest{display:block;width:calc(100% - 32px);margin:18px 16px 0;padding:16px;border-radius:14px;border:1.5px dashed var(--s2);text-align:center;color:var(--sub);font-size:14px;line-height:1.5}
+.suggest b{display:block;color:var(--ink);font-size:15px;margin-top:2px}
+.pickmap{height:210px;border-radius:12px;overflow:hidden;border:1.5px solid var(--rule);background:var(--s1);z-index:0}
+.pk-on{color:var(--calm);font-weight:700}
 </style>
 </head>
 <body>
@@ -598,7 +618,7 @@ const meBtn = () => `<button class="ib me" id="mb">${nickname ? esc(nickname.sli
 const bindMe = () => { const m = $('#mb'); if (m) m.onclick = () => nickSheet(); };
 
 /* ---------- 홈 ---------- */
-let courts = [], filter = '전체', query = '', fresh = true;   // fresh: 화면에 처음 들어왔을 때만 효과를 보여 준다
+let courts = [], filter = '전체', query = '', fresh = true, mode = 'list';   // fresh: 화면에 처음 들어왔을 때만 효과를 보여 준다
 async function loadCourts() { courts = await api('api/courts'); return courts; }
 const norm = t => String(t || '').replace(/\s+/g, '').toLowerCase();
 const regions = () => ['전체', ...[...new Set(courts.map(c => c.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ko')), '모집중'];
@@ -608,6 +628,7 @@ function homeList() {
   list.sort((a, b) => (status(a).known === status(b).known ? a.people - b.people : status(a).known ? -1 : 1) || a.name.localeCompare(b.name, 'ko'));
   const box = $('#cl'); if (!box) return;
   $('#cnt').textContent = list.length;
+  if (mode === 'map') return showMap(list);
   box.innerHTML = list.map(courtRow).join('') || `<div class="empty"><b>${query ? `"${esc(query)}" 검색 결과가 없어요` : '해당하는 코트가 없어요'}</b>코트 이름이나 자치구(예: 마포구, 광진구)로 찾아보세요</div>`;
   box.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.go; });
 }
@@ -629,15 +650,19 @@ async function homeView() {
     </section>
     <label class="search">${I.search}<input id="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="코트 이름이나 지역 (예: 마포구)" value="${esc(query)}"><button type="button" id="qx" aria-label="지우기" ${query ? '' : 'hidden'}>${I.x}</button></label>
     <div class="chips">${regions().map(f => `<button class="chip ${f === filter ? 'on' : ''}" data-f="${esc(f)}">${f === '전체' ? '전체' : f === '모집중' ? '🏀 모집 중' : `${I.pin}${esc(f)}`}</button>`).join('')}</div>
-    <div class="lhead"><span>코트 <b id="cnt" class="n">0</b>곳</span><span>한산한 순</span></div>
+    <div class="lhead"><span>코트 <b id="cnt" class="n">0</b>곳</span><span class="vt" role="group" aria-label="보기 방식"><button data-m="list" class="${mode === 'list' ? 'on' : ''}">목록</button><button data-m="map" class="${mode === 'map' ? 'on' : ''}">지도</button></span></div>
     <div class="list" id="cl"></div>
-    <p class="notes">혼잡도는 체크인(3시간 뒤 자동 해제)과 최근 30분 제보 중 큰 값이에요. 이용자가 많아질수록 정확해져요.</p>`;
+    <button class="suggest" id="sg0">찾는 농구장이 없나요?<b>코트 제보하기</b></button>
+    <p class="notes">목록은 한산한 순이에요. 혼잡도는 체크인(3시간 뒤 자동 해제)과 최근 30분 제보 중 큰 값이에요. 이용자가 많아질수록 정확해져요.</p>`;
+  destroyMap();
   const q = $('#q'), qx = $('#qx');
   q.oninput = () => { query = q.value; qx.hidden = !query; homeList(); };
   q.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) q.blur(); };
   qx.onclick = () => { query = ''; q.value = ''; qx.hidden = true; homeList(); q.focus(); };
   if (focused) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
   view.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; view.querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b)); homeList(); });
+  view.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { if (mode === b.dataset.m) return; mode = b.dataset.m; destroyMap(); view.querySelectorAll('[data-m]').forEach(x => x.classList.toggle('on', x === b)); homeList(); });
+  $('#sg0').onclick = () => withNick(suggestSheet);
   homeList(); bindGo(); nav('', games); if (fresh) countUp(view);
 }
 
@@ -676,7 +701,7 @@ async function courtView(id) {
     <div class="sep"></div>
     ${sec('이 코트의 착장', fits.length)}
     ${c.top_shoes.length ? `<div class="rank">${c.top_shoes.map((s, i) => `<div class="rk"><span class="no n">${i + 1}</span><b>${esc(s.shoes)}</b><span>${s.n}명${s.grip ? ` · 접지 ${s.grip}` : ''}</span></div>`).join('')}</div>` : `<p class="hint">아직 올라온 착장이 없어요. 오늘 신고 오신 신발을 남겨 주세요.</p>`}
-    ${fits.slice(0, 3).map(f => fitCard(f, false)).join('')}
+    <div class="cards">${fits.slice(0, 3).map(f => fitCard(f, false)).join('')}</div>
     <div class="pad" style="margin-top:14px"><button class="btn line sm" id="nf">착장 올리기</button></div>
     <div class="sep"></div>
     ${sec('시간대별 혼잡도')}${chart(c.hourly)}
@@ -863,6 +888,96 @@ async function render() {
 addEventListener('hashchange', () => { closeSheet(); scrollTo(0, 0); fresh = true; view.classList.remove('enter'); render().then(() => { void view.offsetWidth; if (!calm) view.classList.add('enter'); }); });
 setInterval(() => { if (!sheetOpen && !document.hidden) render(); }, 25000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !sheetOpen) render(); });
+
+/* ---------- 지도 (Leaflet + OpenStreetMap) — 지도를 열 때만 불러온다 ---------- */
+const LEAFLET = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/';
+const OSM = {url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', opt: {maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> 기여자'}};
+const SEOUL = [37.5326, 126.99];
+let leafletP = null, mapInst = null, mapLayer = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletP) return leafletP;
+  leafletP = new Promise((res, rej) => {
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = LEAFLET + 'leaflet.css';
+    const js = document.createElement('script'); js.src = LEAFLET + 'leaflet.js';
+    js.onload = () => window.L ? res(window.L) : (leafletP = null, rej(new Error('map')));
+    js.onerror = () => { leafletP = null; rej(new Error('map')); };
+    document.head.append(css, js);
+  });
+  return leafletP;
+}
+function destroyMap() { if (mapInst) { try { mapInst.remove(); } catch (e) {} } mapInst = null; mapLayer = null; }
+const pinIcon = (L, c, on) => { const st = status(c); return L.divIcon({className: `mk ${st.key}${on ? ' sel' : ''}`, html: st.known ? `<span>${c.people}</span>` : '', iconSize: [32, 32], iconAnchor: [16, 16]}); };
+function selectCourt(L, c, markers) {
+  markers.forEach(m => m.setIcon(pinIcon(L, m._court, m._court === c)));
+  const st = status(c), box = $('#mc'); if (!box) return;
+  box.hidden = false;
+  box.innerHTML = `<div class="mc-t"><b>${esc(c.name)}</b><span class="tag ${st.key}">${st.label}</span></div>
+    <div class="mc-s">${esc(c.district || c.area)} · ${st.known ? `지금 ${c.people}명` : '아직 제보 없음'}${c.open_posts ? ` · 게임 ${c.open_posts}개 모집 중` : ''}</div>
+    <button class="btn sm" data-go="c/${esc(c.id)}">자세히 보기</button>`;
+  box.querySelector('[data-go]').onclick = () => { location.hash = '#/c/' + c.id; };
+}
+async function showMap(list) {
+  const box = $('#cl');
+  if (!$('#map')) {
+    destroyMap();
+    box.innerHTML = '<div class="mapwrap"><div id="map" role="application" aria-label="코트 지도"></div><p class="mapmsg" id="mm">지도를 불러오는 중…</p><div class="mapcard" id="mc" hidden></div></div><p class="mapnote" id="mn"></p>';
+  }
+  let L; try { L = await loadLeaflet(); } catch (e) { const m = $('#mm'); if (m) m.textContent = '지도를 불러오지 못했어요. 목록으로 볼 수 있어요.'; return; }
+  if (!$('#map') || mode !== 'map') return;   // 기다리는 사이 화면이 바뀜
+  if (!mapInst) {
+    mapInst = L.map('map', {zoomControl: true}).setView(SEOUL, 11);
+    L.tileLayer(OSM.url, OSM.opt).addTo(mapInst); mapLayer = L.layerGroup().addTo(mapInst);
+    mapInst.on('click', () => { const b = $('#mc'); if (b) b.hidden = true; });
+  }
+  const mm = $('#mm'); if (mm) mm.remove();
+  mapLayer.clearLayers();
+  const pts = list.filter(c => c.lat != null && c.lng != null), markers = [];
+  pts.forEach(c => { const m = L.marker([c.lat, c.lng], {icon: pinIcon(L, c), title: c.name, riseOnHover: true}); m._court = c; m.on('click', e => { if (e.originalEvent) L.DomEvent.stopPropagation(e); selectCourt(L, c, markers); }); m.addTo(mapLayer); markers.push(m); });
+  if (pts.length) mapInst.fitBounds(L.latLngBounds(pts.map(c => [c.lat, c.lng])), {padding: [44, 44], maxZoom: 15});
+  const b = $('#mc'); if (b) b.hidden = true;
+  const none = list.length - pts.length, n = $('#mn');
+  if (n) n.textContent = !list.length ? '' : !pts.length ? '이 코트들은 아직 지도 위치가 없어요. 목록으로 봐 주세요.' : none ? `지도 위치가 아직 없는 코트 ${none}곳은 목록에서 볼 수 있어요.` : '핀의 숫자는 지금 인원이에요. 위치는 공원·시설 기준 대략적인 위치예요.';
+  setTimeout(() => mapInst && mapInst.invalidateSize(), 60);
+}
+
+/* ---------- 코트 제보 ---------- */
+async function suggestSheet() {
+  let pt = null, pm = null;
+  openSheet(`<h4>코트 제보하기</h4><div class="sub">목록에 없는 농구장을 알려 주세요. 운영자가 확인한 뒤 지도와 목록에 올라가요.</div>
+    <label class="field"><span>코트 이름 *</span><input class="in" id="sn" maxlength="30" placeholder="예) 광교호수공원 농구장"></label>
+    <div class="two"><label class="field"><span>지역 *</span><input class="in" id="sd" maxlength="12" placeholder="예) 수원시, 마포구"></label>
+    <label class="field"><span>바닥</span><select class="in" id="ss"><option value="">모름</option><option>고무</option><option>우레탄</option><option>아스팔트</option><option>마루</option><option>기타</option></select></label></div>
+    <label class="field"><span>주소·찾아가는 법</span><input class="in" id="sa" maxlength="60" placeholder="예) 광교호수로 57 옆 주차장 뒤"></label>
+    <div class="two"><label class="field"><span>골대 수</span><input class="in" id="sh" maxlength="30" placeholder="예) 골대 4개"></label>
+    <label class="field"><span>메모</span><input class="in" id="so" maxlength="80" placeholder="조명·화장실 등"></label></div>
+    <div class="field"><span>지도에서 위치 고르기 (선택)</span><div class="pickmap" id="pk"></div><p class="hint" id="pkh" style="margin:6px 0 0">코트가 있는 곳을 눌러 핀을 꽂아 주세요. 핀을 끌어서 옮길 수도 있어요.</p></div>
+    <p class="hint" style="margin:12px 0 0">직접 확인한 정보만 적어 주세요. 다른 사이트나 블로그의 글·사진은 옮기지 말고, 전화번호 같은 개인정보는 쓰지 마세요.</p>
+    <div style="height:18px"></div><button class="btn" id="sg">제보하기</button>`, s => {
+    s.querySelector('#sn').focus();
+    loadLeaflet().then(L => {
+      const el = s.querySelector('#pk'); if (!el) return;
+      const c = mapInst ? mapInst.getCenter() : null, map = L.map(el, {zoomControl: true}).setView(c ? [c.lat, c.lng] : SEOUL, c ? Math.max(mapInst.getZoom(), 13) : 11);
+      L.tileLayer(OSM.url, OSM.opt).addTo(map);
+      const put = ll => {
+        pt = {lat: +ll.lat.toFixed(6), lng: +ll.lng.toFixed(6)};
+        if (!pm) { pm = L.marker(ll, {draggable: true}).addTo(map); pm.on('dragend', () => put(pm.getLatLng())); } else pm.setLatLng(ll);
+        const h = s.querySelector('#pkh'); if (h) { h.textContent = '위치를 골랐어요'; h.className = 'hint pk-on'; h.style.margin = '6px 0 0'; }
+      };
+      map.on('click', e => put(e.latlng));
+      setTimeout(() => map.invalidateSize(), 80);
+    }).catch(() => { const el = s.querySelector('#pk'); if (el) { el.style.display = 'grid'; el.style.placeItems = 'center'; el.textContent = '지도를 불러오지 못했어요. 주소로 적어 주세요.'; } });
+    s.querySelector('#sg').onclick = () => {
+      const v = id => s.querySelector('#' + id).value.trim();
+      if (v('sn').length < 2) return toast('코트 이름을 입력해 주세요');
+      if (!v('sd')) return toast('지역을 입력해 주세요 (예: 마포구)');
+      if (!pt && !v('sa')) return toast('지도에서 위치를 고르거나 주소를 적어 주세요');
+      api('api/suggest', 'POST', {nickname, name: v('sn'), district: v('sd'), address: v('sa'), hoops: v('sh'), surface: v('ss'), note: v('so'), lat: pt ? pt.lat : null, lng: pt ? pt.lng : null})
+        .then(() => { closeSheet(); toast('제보했어요. 확인 후 올라가요'); }).catch(e => toast(e.message));
+    };
+  });
+}
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 render();
 </script>

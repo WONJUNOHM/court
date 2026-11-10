@@ -42,6 +42,8 @@
       if (path === 'api/me/fits') return rpc('api_my_fits', {nickname: q.nickname || ''});
     } else {
       if (path === 'api/nick') return rpc('api_nick', {nickname: b.nickname, key});
+      if (path === 'api/suggest') return rpc('api_suggest_court', {nickname: b.nickname, key, name: b.name, district: b.district, address: b.address || '', hoops: b.hoops || '',
+        surface: b.surface || '', note: b.note || '', lat: b.lat ?? null, lng: b.lng ?? null});
       if ((m = path.match(/^api\/courts\/([^/]+)\/(checkin|checkout|report|condition|posts)$/))) {
         const cid = decodeURIComponent(m[1]);
         if (m[2] === 'checkin' || m[2] === 'checkout') return rpc('api_' + m[2], {cid, nickname: b.nickname, key});
