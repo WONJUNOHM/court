@@ -558,7 +558,7 @@ function nickSheet(then) {
   openSheet(`<h4>닉네임 정하기</h4><div class="sub">코트에서 서로 부를 이름입니다. 가입은 필요하지 않습니다.</div>
     <label class="field"><span>닉네임 (최대 20자)</span><input class="in" id="ni" maxlength="20" value="${esc(nickname)}" placeholder="예) 슛돌이" autocomplete="off"></label>
     ${age14 ? '' : `<label style="display:flex;gap:10px;align-items:center;margin-top:14px;font-size:14px;color:var(--sub);cursor:pointer">
-      <input type="checkbox" id="na" style="width:20px;height:20px;accent-color:var(--accent);flex:none"> 만 14세 이상입니다</label>`}
+      <input type="checkbox" id="na" style="width:20px;height:20px;accent-color:var(--accent);flex:none"> <span>만 14세 이상이며, <a href="terms.html" target="_blank" style="text-decoration:underline">이용약관</a>과 <a href="privacy.html" target="_blank" style="text-decoration:underline">개인정보처리방침</a>을 확인했어요</span></label>`}
     <div style="height:18px"></div><button class="btn" id="ns">저장</button>`, s => {
     const go = async () => {
       const v = s.querySelector('#ni').value.trim(); if (!v) return toast('닉네임을 입력해 주세요');
@@ -945,6 +945,7 @@ async function meView() {
       <b style="color:var(--ink)">홈 화면에 추가</b> 브라우저 메뉴에서 "홈 화면에 추가"를 누르면 앱처럼 사용할 수 있어요.<br>
       <b style="color:var(--ink)">주의</b> 이용자 제보 기반이므로 실제와 다를 수 있어요. 전화번호 등 개인정보는 글에 쓰지 마세요.<br><br>
       <button id="ri" style="text-decoration:underline;font-weight:700;color:var(--ink)">사용법 다시 보기</button><br><br>
+      <a href="terms.html" style="text-decoration:underline">이용약관</a> · <a href="privacy.html" style="text-decoration:underline">개인정보처리방침</a><br><br>
       <b style="color:var(--ink)">사진 출처</b> 화면의 사진은 모두 CC0(저작권 제한 없음)이며, 실제 코트 사진이 아닌 분위기용 이미지입니다.<br>
       ${Object.values(cr).map(c => `${esc(c.artist)} · <a href="${esc(c.page)}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">${esc(c.license)}</a>`).join('<br>')}</div>`;
   $('#ed').onclick = () => nickSheet(); $('#ri').onclick = introSheet; bindGo(); bindGames(); bindFits(); fab(null); nav('me', 0);

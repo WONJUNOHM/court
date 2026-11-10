@@ -6,7 +6,7 @@ import json, os, shutil, sys
 
 SUPABASE_URL = 'https://hplueubmmzvytmozxmgf.supabase.co'
 SUPABASE_KEY = 'sb_publishable_WciyhYis0lISAPIpySi-aQ_JjesGQsO'   # 공개용 키 (표는 RLS 로 막혀 있음)
-CONTACT_EMAIL = ''          # 문의·삭제 요청 받을 메일 (개인정보처리방침·이용약관에 들어감)
+CONTACT_EMAIL = 'alexeom6@gmail.com'          # 문의·삭제 요청 받을 메일 (개인정보처리방침·이용약관에 들어감)
 POLICY_DATE = '2026년 11월 10일'   # 처리방침·약관 시행일
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
