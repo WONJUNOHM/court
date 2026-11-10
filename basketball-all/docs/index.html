@@ -687,7 +687,12 @@ function fitCard(f, showCourt = true) {
 }
 function bindFits() {
   view.querySelectorAll('[data-photo]').forEach(b => b.onclick = () => openSheet(`<img class="bigph" src="${esc(b.dataset.photo)}" alt="착장 사진"><div style="height:12px"></div><button class="btn line sm" onclick="closeSheet()">닫기</button>`));
-  view.querySelectorAll('[data-fl]').forEach(b => b.onclick = () => withNick(() => act(() => api(`api/fits/${b.dataset.fl}/like`, 'POST', {nickname}))));
+  view.querySelectorAll('[data-fl]').forEach(b => b.onclick = () => withNick(() => {
+    if (b.dataset.busy) return; b.dataset.busy = '1';
+    const was = b.classList.contains('on'), n = parseInt(b.textContent, 10) || 0, paint = on => { b.classList.toggle('on', on); b.lastChild.textContent = Math.max(0, n + (on ? (was ? 0 : 1) : (was ? -1 : 0))); };
+    paint(!was);   // 누르는 즉시 화면에 반영
+    api(`api/fits/${b.dataset.fl}/like`, 'POST', {nickname}).catch(e => { paint(was); toast(e.message); }).finally(() => delete b.dataset.busy);
+  }));
   view.querySelectorAll('[data-fd]').forEach(b => b.onclick = () => { if (confirm('이 착장 글을 삭제할까요?')) act(() => api(`api/fits/${b.dataset.fd}/delete`, 'POST', {nickname})); });
   view.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => { if (confirm('부적절한 글로 신고할까요? 신고가 누적되면 자동으로 숨겨집니다.')) act(() => api(`api/fits/${b.dataset.fr}/report`, 'POST'), '신고했어요'); });
 }
