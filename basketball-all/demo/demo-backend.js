@@ -51,7 +51,7 @@
     return Object.entries(g).map(([tag, v]) => ({tag, label: COND_TAGS[tag], ...v}));
   }
   const openPost = p => p.play_at > kstStr(nowMs() - 3 * HOUR);
-  const postView = p => ({id: p.id, court_id: p.court, nickname: p.nick, title: p.title, when_text: p.play_at.slice(11), need: p.capacity - 1, link: p.link, play_at: p.play_at,
+  const postView = p => ({id: p.id, court_id: p.court, nickname: p.nick, title: p.title, when_text: p.play_at.slice(11), need: p.capacity - 1, has_link: !!p.link, play_at: p.play_at,
     capacity: p.capacity, level: p.level, fmt: p.fmt, created: '', court_name: V.court(p.court).name, ago: agoMin(p.created), joined: [...p.joined]});
   const posts = f => S.posts.filter(p => openPost(p) && (!f || f(p))).sort((a, b) => a.play_at.localeCompare(b.play_at) || a.id - b.id).map(postView);
   const fitView = f => ({id: f.id, court_id: f.court, nickname: f.nick, shoes: f.shoes, shoe_size: f.size, top: f.top, bottom: f.bottom, extra: f.extra, comment: f.comment, grip: f.grip,
@@ -114,6 +114,11 @@
           S.posts.push({id: ++S.seq, court: c.id, nick: n, title, play_at: at, capacity: Math.floor(body.capacity), fmt: body.fmt, level: body.level, link, created: nowMs(), joined: [n]});
         }
         return {ok: true};
+      }
+      if ((m = path.match(/^api\/posts\/(\d+)\/link$/))) {
+        const p = S.posts.find(x => x.id === +m[1]), n = (body.nickname || '').trim();
+        if (!p || !p.link || !p.joined.includes(n)) throw new HttpError(403, '참가한 사람만 볼 수 있어요');
+        return {link: p.link};
       }
       if ((m = path.match(/^api\/posts\/(\d+)\/(join|leave|delete)$/))) {
         const p = S.posts.find(x => x.id === +m[1]); if (!p) { if (m[2] === 'join') throw new HttpError(404, '없는 글이에요'); return {ok: true}; }

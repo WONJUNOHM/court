@@ -52,6 +52,7 @@
         return rpc('api_new_post', {cid, nickname: b.nickname, key, title: b.title, play_date: b.play_date, play_time: b.play_time,
           capacity: Math.floor(b.capacity), fmt: b.fmt, level: b.level, link: b.link || ''});
       }
+      if ((m = path.match(/^api\/posts\/(\d+)\/link$/))) return rpc('api_post_link', {pid: +m[1], nickname: b.nickname || '', key});
       if ((m = path.match(/^api\/posts\/(\d+)\/(join|leave|delete)$/))) return rpc('api_post_action', {pid: +m[1], act: m[2], nickname: b.nickname || '', key});
       if (path === 'api/fits') {
         // 닉네임 주인부터 확인한 뒤 사진을 올린다(남의 닉네임으로 사진만 쌓이는 것 방지)

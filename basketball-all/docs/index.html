@@ -456,6 +456,7 @@ html,body,.app{background:var(--paper)}
         return rpc('api_new_post', {cid, nickname: b.nickname, key, title: b.title, play_date: b.play_date, play_time: b.play_time,
           capacity: Math.floor(b.capacity), fmt: b.fmt, level: b.level, link: b.link || ''});
       }
+      if ((m = path.match(/^api\/posts\/(\d+)\/link$/))) return rpc('api_post_link', {pid: +m[1], nickname: b.nickname || '', key});
       if ((m = path.match(/^api\/posts\/(\d+)\/(join|leave|delete)$/))) return rpc('api_post_action', {pid: +m[1], act: m[2], nickname: b.nickname || '', key});
       if (path === 'api/fits') {
         // 닉네임 주인부터 확인한 뒤 사진을 올린다(남의 닉네임으로 사진만 쌓이는 것 방지)
@@ -657,12 +658,13 @@ function gameCard(p, showDate) {
     <div class="names">${p.joined.map(esc).join(', ')} <span style="color:var(--faint)">· ${esc(p.nickname)} 모집 · ${ago(p.ago)}</span></div>
     <div class="acts">
       ${mine ? `<button class="b g" data-pid="${p.id}" data-act="leave">참가 취소</button>` : `<button class="b p" ${full || g.label === '진행중' ? 'disabled style="opacity:.4"' : ''} data-pid="${p.id}" data-act="join">${full ? '마감되었습니다' : '참가하기'}</button>`}
-      ${p.link ? `<a class="b" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer">오픈채팅</a>` : ''}
+      ${p.has_link ? (mine ? `<button class="b" data-pid="${p.id}" data-act="chat">오픈채팅</button>` : `<span class="hint" style="align-self:center;margin:0 4px">참가하면 오픈채팅이 열려요</span>`) : ''}
       ${owner ? `<button class="b t" data-pid="${p.id}" data-act="delete">삭제</button>` : ''}
     </div></article>`;
 }
 function bindGames() {
   view.querySelectorAll('[data-pid]').forEach(b => b.onclick = () => withNick(() => {
+    if (b.dataset.act === 'chat') return api(`api/posts/${b.dataset.pid}/link`, 'POST', {nickname}).then(r => openSheet(`<h4>오픈채팅</h4><div class="sub">참가한 사람끼리만 쓰는 링크예요. 다른 사람에게 공유하지 말아 주세요.</div><div style="height:16px"></div><a class="btn" href="${esc(r.link)}" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;text-decoration:none">오픈채팅 열기</a><div style="height:8px"></div><button class="btn line sm" onclick="closeSheet()">닫기</button>`)).catch(e => toast(e.message));
     if (b.dataset.act === 'delete' && !confirm('이 모집글을 삭제할까요?')) return;
     act(() => api(`api/posts/${b.dataset.pid}/${b.dataset.act}`, 'POST', {nickname}), b.dataset.act === 'join' ? '참가했어요. 코트에서 만나요' : null);
   }));
@@ -842,7 +844,7 @@ async function gameSheet(cid, date) {
     <div class="field"><span>형식</span><div class="opts" id="of"></div></div>
     <div class="field"><span>레벨</span><div class="opts" id="ol"></div></div>
     <label class="field"><span>전체 인원 (본인 포함)</span><input class="in" id="pn" type="number" min="2" max="30" value="${cap}" inputmode="numeric"></label>
-    <label class="field"><span>오픈채팅 링크 (선택)</span><input class="in" id="pl" maxlength="200" placeholder="https://open.kakao.com/..." inputmode="url"></label>
+    <label class="field"><span>오픈채팅 링크 (선택 · 참가한 사람에게만 보여요)</span><input class="in" id="pl" maxlength="200" placeholder="https://open.kakao.com/..." inputmode="url"></label>
     <div style="height:18px"></div><button class="btn" id="go">올리기</button>`, s => {
     opts(s.querySelector('#of'), FORMATS, fmt, v => { fmt = v; s.querySelector('#pn').value = CAP[v]; });
     opts(s.querySelector('#ol'), LEVELS, level, v => { level = v; });
