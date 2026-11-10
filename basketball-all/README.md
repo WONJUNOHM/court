@@ -17,5 +17,7 @@ FastAPI + SQLite + 바닐라 JS (빌드 과정 없음).
 - 사진은 모두 CC0이며 출처는 `static/img/credits.json`에 있습니다.
 
 ## GitHub Pages 데모
+주소: https://wonjunohm.github.io/court/
+
 `docs/` 폴더는 서버 없이 브라우저만으로 도는 체험판입니다 (`python3 demo/build.py`로 `static/`에서 다시 만듭니다).
 `main`에 푸시하면 `.github/workflows/pages.yml`이 자동으로 배포합니다 (Settings → Pages 의 Source는 **GitHub Actions**). 데이터는 각자의 브라우저에만 저장됩니다.
