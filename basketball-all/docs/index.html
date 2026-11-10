@@ -381,6 +381,16 @@ html,body,.app{background:var(--paper)}
 .suggest b{display:block;color:var(--ink);font-size:15px;margin-top:2px}
 .suggest:active{background:var(--s1)}
 .empty .btn{margin-top:16px;width:auto;display:inline-flex;padding:0 22px}
+
+/* 처음 방문 소개 */
+.intro{display:grid;gap:16px;margin-top:20px}
+.intro>div{display:flex;gap:14px;align-items:flex-start}
+.intro .ic{flex:none;width:42px;height:42px;border-radius:13px;background:var(--accent-soft,#fff1eb);color:var(--ball,var(--accent));display:grid;place-items:center}
+.intro .ic svg{width:22px;height:22px}
+.intro b{display:block;font-size:15.5px;letter-spacing:-.03em}
+.intro p{margin:2px 0 0;font-size:13.5px;color:var(--sub);line-height:1.5}
+.introbtns{display:grid;gap:4px;margin-top:22px}
+.introbtns .skip{height:44px;color:var(--sub);font-weight:600;font-size:14px;text-align:center}
 </style>
 </head>
 <body>
@@ -934,9 +944,10 @@ async function meView() {
       <b style="color:var(--ink)">자동 정리</b> 체크인은 3시간, 현장 상태는 2시간 뒤 사라지며, 게임은 시작 3시간 뒤 목록에서 제외돼요.<br>
       <b style="color:var(--ink)">홈 화면에 추가</b> 브라우저 메뉴에서 "홈 화면에 추가"를 누르면 앱처럼 사용할 수 있어요.<br>
       <b style="color:var(--ink)">주의</b> 이용자 제보 기반이므로 실제와 다를 수 있어요. 전화번호 등 개인정보는 글에 쓰지 마세요.<br><br>
+      <button id="ri" style="text-decoration:underline;font-weight:700;color:var(--ink)">사용법 다시 보기</button><br><br>
       <b style="color:var(--ink)">사진 출처</b> 화면의 사진은 모두 CC0(저작권 제한 없음)이며, 실제 코트 사진이 아닌 분위기용 이미지입니다.<br>
       ${Object.values(cr).map(c => `${esc(c.artist)} · <a href="${esc(c.page)}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">${esc(c.license)}</a>`).join('<br>')}</div>`;
-  $('#ed').onclick = () => nickSheet(); bindGo(); bindGames(); bindFits(); fab(null); nav('me', 0);
+  $('#ed').onclick = () => nickSheet(); $('#ri').onclick = introSheet; bindGo(); bindGames(); bindFits(); fab(null); nav('me', 0);
 }
 
 /* ---------- 라우터 ---------- */
@@ -983,8 +994,31 @@ function suggestSheet() {
   });
 }
 
+
+/* ---------- 처음 방문 소개 ---------- */
+function introSheet() {
+  openSheet(`<h4>코트 한눈에에 오신 걸 환영해요</h4><div class="sub">동네 농구장을 더 편하게 쓰는 방법이에요. 가입 없이 닉네임만 있으면 돼요.</div>
+    <div class="intro">
+      <div><span class="ic">${I.court}</span><span><b>지금 사람이 얼마나 있는지</b><p>코트별 혼잡도를 한눈에 보고, 도착하면 체크인하거나 인원을 제보해 주세요.</p></span></div>
+      <div><span class="ic">${I.game}</span><span><b>같이 뛸 사람 찾기</b><p>날짜별로 게임을 모집하고 참가할 수 있어요.</p></span></div>
+      <div><span class="ic">${I.fit}</span><span><b>신발·착장 기록</b><p>코트 바닥에 맞는 신발과 후기를 남기고 다른 사람 기록도 볼 수 있어요.</p></span></div>
+      <div><span class="ic">${I.pin}</span><span><b>없는 코트는 제보</b><p>목록에 없는 농구장을 알려 주시면 확인 후 올라가요.</p></span></div>
+    </div>
+    <p class="hint" style="margin:16px 0 0">정보는 이용자 제보라 실제와 다를 수 있어요. 홈 화면에 추가하면 앱처럼 쓸 수 있어요.</p>
+    <div class="introbtns"><button class="btn" id="ig">시작하기</button><button class="skip" id="is">다시 보지 않기</button></div>`, s => {
+    s.querySelector('#ig').onclick = closeSheet;
+    s.querySelector('#is').onclick = () => { try { localStorage.setItem('introSeen', '1'); } catch (e) {} closeSheet(); };
+  });
+}
+function maybeIntro() {
+  let seen = false; try { seen = localStorage.getItem('introSeen') === '1' || sessionStorage.getItem('introShown') === '1'; } catch (e) {}
+  if (seen || sheetOpen) return;
+  try { sessionStorage.setItem('introShown', '1'); } catch (e) {}
+  introSheet();
+}
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-render();
+render().then(() => setTimeout(maybeIntro, 400));
 </script>
 </body>
 </html>
